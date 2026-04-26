@@ -1,0 +1,1 @@
+import HeroSection from '@/components/home/HeroSection';

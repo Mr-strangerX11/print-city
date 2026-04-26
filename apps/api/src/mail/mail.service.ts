@@ -1,0 +1,157 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import * as nodemailer from 'nodemailer';
+
+@Injectable()
+export class MailService {
+  private transporter: nodemailer.Transporter;
+  private readonly logger = new Logger(MailService.name);
+
+  constructor(private config: ConfigService) {
+    this.transporter = nodemailer.createTransport({
+      host: this.config.get('SMTP_HOST'),
+      port: Number(this.config.get('SMTP_PORT', 587)),
+      secure: false,
+      auth: {
+        user: this.config.get('SMTP_USER'),
+        pass: this.config.get('SMTP_PASS'),
+      },
+    });
+  }
+
+  async sendOrderConfirmation(to: string, orderId: string, total: number) {
+    await this.send(to, 'Order Confirmed — Print City', `
+      <h2>Your order has been confirmed!</h2>
+      <p>Order ID: <strong>#${orderId.slice(-8).toUpperCase()}</strong></p>
+      <p>Total: <strong>Rs. ${total.toFixed(2)}</strong></p>
+      <p>We'll notify you when your order ships.</p>
+    `);
+  }
+
+  async sendOrderStatusUpdate(to: string, orderId: string, status: string) {
+    await this.send(to, `Order Update: ${status} — Print City`, `
+      <h2>Order Status Update</h2>
+      <p>Your order <strong>#${orderId.slice(-8).toUpperCase()}</strong> is now <strong>${status}</strong>.</p>
+    `);
+  }
+
+  async sendVendorApproval(to: string, storeName: string) {
+    await this.send(to, 'Your store is live — Print City', `
+      <h2>Congratulations! Your store "${storeName}" is now active.</h2>
+      <p>You can start uploading designs and earning commissions.</p>
+    `);
+  }
+
+  async sendPayoutNotification(to: string, amount: number) {
+    await this.send(to, 'Payout Processed — Print City', `
+      <h2>Your payout of Rs. ${amount.toFixed(2)} has been processed.</h2>
+      <p>Please allow 3-5 business days for funds to arrive.</p>
+    `);
+  }
+
+  async sendInvoiceEmail(to: string, invoice: any) {
+    const fmt = (n: number | string) =>
+      `Rs. ${Number(n).toLocaleString('en-NP', { minimumFractionDigits: 2 })}`;
+
+    const itemRows = (invoice.items ?? [])
+      .map(
+        (item: any) => `
+        <tr style="border-bottom:1px solid #F3F4F6;">
+          <td style="padding:12px 16px;font-size:13px;color:#374151;">
+            <strong>${item.productName}</strong><br/>
+            <span style="font-size:11px;color:#9CA3AF;">${item.variantLabel}</span>
+          </td>
+          <td style="padding:12px 16px;text-align:center;font-size:13px;color:#374151;">${item.qty}</td>
+          <td style="padding:12px 16px;text-align:right;font-size:13px;color:#374151;">${fmt(item.unitPrice)}</td>
+          <td style="padding:12px 16px;text-align:right;font-size:13px;font-weight:700;color:#111827;">${fmt(item.total)}</td>
+        </tr>`,
+      )
+      .join('');
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
+<body style="margin:0;padding:0;background:#F9FAFB;font-family:'Helvetica Neue',Arial,sans-serif;">
+<div style="max-width:600px;margin:40px auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+  <!-- Header -->
+  <div style="background:linear-gradient(135deg,#7C3AED,#2563EB);padding:32px 40px;">
+    <div style="font-size:24px;font-weight:900;color:#fff;letter-spacing:-0.5px;">Print City</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.7);margin-top:4px;text-transform:uppercase;letter-spacing:1px;">Custom Print Marketplace</div>
+    <div style="margin-top:16px;font-size:28px;font-weight:900;color:#fff;">Invoice Ready</div>
+  </div>
+
+  <!-- Body -->
+  <div style="padding:32px 40px;">
+    <p style="font-size:15px;color:#374151;margin:0 0 8px;">Hi <strong>${invoice.user?.name ?? 'Customer'}</strong>,</p>
+    <p style="font-size:14px;color:#6B7280;margin:0 0 24px;">Your invoice for order <strong style="color:#111827;">#${(invoice.order?.id ?? '').slice(-8).toUpperCase()}</strong> is ready.</p>
+
+    <!-- Invoice Meta -->
+    <div style="background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:16px 20px;margin-bottom:24px;display:flex;justify-content:space-between;">
+      <div>
+        <div style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Invoice Number</div>
+        <div style="font-size:15px;font-weight:700;color:#7C3AED;">${invoice.invoiceNumber}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:11px;color:#9CA3AF;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Date Issued</div>
+        <div style="font-size:14px;font-weight:600;color:#374151;">${new Date(invoice.issuedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+      </div>
+    </div>
+
+    <!-- Items Table -->
+    <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+      <thead>
+        <tr style="background:#F3F4F6;">
+          <th style="padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.5px;">Item</th>
+          <th style="padding:10px 16px;text-align:center;font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.5px;">Qty</th>
+          <th style="padding:10px 16px;text-align:right;font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.5px;">Price</th>
+          <th style="padding:10px 16px;text-align:right;font-size:11px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.5px;">Total</th>
+        </tr>
+      </thead>
+      <tbody>${itemRows}</tbody>
+    </table>
+
+    <!-- Total -->
+    <div style="border-top:2px solid #111827;padding-top:16px;text-align:right;margin-bottom:24px;">
+      <span style="font-size:18px;font-weight:900;color:#111827;">Total: </span>
+      <span style="font-size:22px;font-weight:900;color:#7C3AED;">${fmt(invoice.total)}</span>
+    </div>
+
+    <!-- CTA -->
+    <div style="text-align:center;margin:32px 0;">
+      <a href="${this.config.get('FRONTEND_URL', 'http://localhost:3000')}/dashboard/invoices/${invoice.id}"
+         style="display:inline-block;background:linear-gradient(135deg,#7C3AED,#2563EB);color:#fff;padding:14px 32px;border-radius:10px;font-weight:700;font-size:14px;text-decoration:none;">
+        View Invoice
+      </a>
+    </div>
+
+    <p style="font-size:12px;color:#9CA3AF;text-align:center;margin-top:24px;">
+      You can download the PDF from your dashboard. If you have questions, contact us at support@printcity.com.np
+    </p>
+  </div>
+
+  <!-- Footer -->
+  <div style="background:#F9FAFB;border-top:1px solid #E5E7EB;padding:20px 40px;text-align:center;">
+    <p style="font-size:11px;color:#9CA3AF;margin:0;">© ${new Date().getFullYear()} Print City · Kathmandu, Nepal</p>
+  </div>
+
+</div>
+</body>
+</html>`;
+
+    await this.send(to, `Invoice ${invoice.invoiceNumber} — Print City`, html);
+  }
+
+  private async send(to: string, subject: string, html: string) {
+    try {
+      await this.transporter.sendMail({
+        from: this.config.get('SMTP_FROM', 'noreply@printcity.com.np'),
+        to,
+        subject,
+        html,
+      });
+    } catch (err) {
+      this.logger.error(`Failed to send email to ${to}: ${err}`);
+    }
+  }
+}

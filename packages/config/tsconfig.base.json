@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "strict": false,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true
+  }
+}
