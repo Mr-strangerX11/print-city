@@ -24,6 +24,8 @@ import { CouponsModule } from './coupons/coupons.module';
 import { ProductionModule } from './production/production.module';
 import { SupportModule } from './support/support.module';
 import { QueuesModule } from './queues/queues.module';
+import { DesignsModule } from './designs/designs.module';
+import { PrintSecureModule } from './print-secure/print-secure.module';
 
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
@@ -56,6 +58,8 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
     ProductionModule,
     SupportModule,
     QueuesModule,
+    DesignsModule,
+    PrintSecureModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },

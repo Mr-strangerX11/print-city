@@ -217,6 +217,7 @@ model Vendor {
   orderItems   OrderItem[]
   invoiceItems InvoiceItem[]
   kyc          VendorKyc?
+  designs      Design[]
 
   @@index([storeSlug])
   @@index([status])
@@ -734,6 +735,118 @@ model Quotation {
   user User @relation(fields: [userId], references: [id])
 
   @@index([userId])
+  @@index([status])
+}
+
+// ─── SECURE DESIGN VAULT ──────────────────────────────────────────────────────
+
+enum DesignStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum DesignPrintFormat {
+  A4
+  A3
+  TSHIRT
+  HOODIE
+  MUG
+  CUSTOM
+}
+
+enum DesignColorMode {
+  RGB
+  CMYK
+}
+
+enum DesignPrintStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model Design {
+  id          String        @id @default(cuid())
+  title       String
+  description String?
+  tags        String[]      @default([])
+
+  // Private storage — NEVER expose storageKey to frontend
+  storageKey   String        // Cloudinary public_id (type=private) or S3 key
+  storageType  String        @default("cloudinary") // cloudinary | s3
+  fileType     String        // MIME type
+  fileSize     Int           // bytes
+  width        Int?          // px
+  height       Int?          // px
+  dpi          Int?          // source DPI if known
+
+  status      DesignStatus  @default(PENDING)
+
+  // Relations
+  vendorId    String
+  vendor      Vendor        @relation(fields: [vendorId], references: [id])
+
+  viewTokens  ViewToken[]
+  printJobs   DesignPrintJob[]
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // NO deletedAt — designs CANNOT be deleted per business rules
+
+  @@index([vendorId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ViewToken {
+  id          String    @id @default(cuid())
+  token       String    @unique
+  designId    String
+  design      Design    @relation(fields: [designId], references: [id])
+  userId      String    // who requested this token
+  userRole    String    // their role at time of generation
+  expiresAt   DateTime
+  usedAt      DateTime? // one-time use — set on first render
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime  @default(now())
+
+  @@index([token])
+  @@index([designId])
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model DesignPrintJob {
+  id          String            @id @default(cuid())
+  designId    String
+  design      Design            @relation(fields: [designId], references: [id])
+  adminId     String
+
+  format      DesignPrintFormat
+  colorMode   DesignColorMode   @default(RGB)
+  copies      Int               @default(1)
+  dpi         Int               @default(300)
+  bleed       Float             @default(3)   // mm
+  notes       String?
+
+  status      DesignPrintStatus @default(QUEUED)
+  startedAt   DateTime?
+  completedAt DateTime?
+  error       String?
+
+  // Temp print token (30s expiry, one-time use)
+  printToken  String?   @unique
+  printTokenExpiresAt DateTime?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([designId])
+  @@index([adminId])
   @@index([status])
 }
 
