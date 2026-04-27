@@ -18,11 +18,6 @@ export async function createNestApp(): Promise<NestExpressApplication> {
     rawBody: true,
   });
 
-  // Serve local uploads (dev fallback when Cloudinary is not configured)
-  const uploadsDir = join(process.cwd(), 'uploads');
-  await mkdir(uploadsDir, { recursive: true });
-  app.useStaticAssets(uploadsDir, { prefix: '/uploads' });
-
   app.setGlobalPrefix('api');
 
   const isDev = process.env.NODE_ENV !== 'production';
@@ -59,6 +54,11 @@ export async function createNestApp(): Promise<NestExpressApplication> {
 
 async function bootstrap() {
   const app = await createNestApp();
+
+  const uploadsDir = join(process.cwd(), 'uploads');
+  await mkdir(uploadsDir, { recursive: true });
+  app.useStaticAssets(uploadsDir, { prefix: '/uploads' });
+
   const port = process.env.API_PORT ?? 4000;
   await app.getHttpAdapter().getHttpServer().listen(port);
   console.log(`🚀 API running on http://localhost:${port}/api`);
