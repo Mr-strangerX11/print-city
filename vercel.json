@@ -1,9 +1,8 @@
 {
-  "buildCommand": "pnpm turbo run build --filter=@ap/api",
+  "version": 2,
+  "buildCommand": "pnpm install && pnpm turbo run build --filter=@ap/api",
   "outputDirectory": "apps/api/dist",
-  "devCommand": "pnpm dev",
-  "installCommand": "pnpm install",
-  "framework": "nestjs",
   "nodeVersion": "20.x"
 }
+
 
