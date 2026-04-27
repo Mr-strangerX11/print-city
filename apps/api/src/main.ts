@@ -1,13 +1,22 @@
 import { NestFactory } from '@nestjs/core';
+import { ExpressAdapter } from '@nestjs/platform-express';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { join } from 'path';
 import { mkdir } from 'fs/promises';
+import * as express from 'express';
 
-async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
+let cachedApp: NestExpressApplication | null = null;
+
+export async function createNestApp(): Promise<NestExpressApplication> {
+  const expressApp = express();
+  const adapter = new ExpressAdapter(expressApp);
+
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, adapter, {
+    rawBody: true,
+  });
 
   // Serve local uploads (dev fallback when Cloudinary is not configured)
   const uploadsDir = join(process.cwd(), 'uploads');
@@ -44,10 +53,30 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('docs', app, document);
 
+  await app.init();
+  return app;
+}
+
+async function bootstrap() {
+  const app = await createNestApp();
   const port = process.env.API_PORT ?? 4000;
-  await app.listen(port);
+  await app.getHttpAdapter().getHttpServer().listen(port);
   console.log(`🚀 API running on http://localhost:${port}/api`);
   console.log(`📚 Swagger docs at http://localhost:${port}/docs`);
 }
 
-bootstrap();
+// For local development
+if (require.main === module) {
+  bootstrap().catch((err) => {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  });
+}
+
+// For Lambda/Vercel - export the Express server
+export default async () => {
+  if (!cachedApp) {
+    cachedApp = await createNestApp();
+  }
+  return cachedApp.getHttpAdapter().getInstance();
+};

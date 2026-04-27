@@ -1,14 +1,15 @@
 {
   "version": 2,
   "buildCommand": "cd ../.. && pnpm install && pnpm --filter @ap/api build",
-  "startCommand": "node dist/main",
+  "outputDirectory": "dist",
   "env": {
     "NODE_ENV": "production"
   },
   "functions": {
     "dist/main.js": {
       "memory": 1024,
-      "maxDuration": 60
+      "maxDuration": 60,
+      "runtime": "nodejs20.x"
     }
   }
 }
