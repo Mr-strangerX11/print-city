@@ -1,25 +1,3 @@
 {
-  "version": 2,
-  "buildCommand": "turbo build --filter=@ap/web",
-  "outputDirectory": "apps/web/.next",
-  "builds": [
-    {
-      "src": "apps/web/package.json",
-      "use": "@vercel/next"
-    },
-    {
-      "src": "apps/api/src/lambda.ts",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "apps/api/src/lambda.ts"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "apps/web"
-    }
-  ]
+  "version": 2
 }
