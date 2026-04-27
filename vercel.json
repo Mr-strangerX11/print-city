@@ -1,8 +1,15 @@
 {
   "version": 2,
-  "buildCommand": "pnpm install && pnpm turbo run build --filter=@ap/api",
-  "outputDirectory": "apps/api/dist",
-  "nodeVersion": "20.x"
+  "builds": [
+    {
+      "src": "apps/api/src/lambda.ts",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "apps/api/src/lambda.ts"
+    }
+  ]
 }
-
-
