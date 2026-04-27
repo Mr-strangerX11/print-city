@@ -220,9 +220,27 @@ async function main() {
     },
   ];
 
+  // Map of product slugs to stable Unsplash image IDs
+  const imageMap: Record<string, string> = {
+    'minimalist-mountain-tee': 'photo-1521572163474-6864f9cf17ab',
+    'abstract-waves-tee': 'photo-1552062407-291c33eac3af',
+    'gradient-sunset-hoodie': 'photo-1556821552-9ae0d9e07871',
+    'neon-city-lights-tee': 'photo-1521572163474-6864f9cf17ab',
+    'retro-space-mug': 'photo-1514432324607-2e2be62dbd45',
+    'botanical-print-hoodie': 'photo-1556821552-9ae0d9e07871',
+    'geometric-forest-poster': 'photo-1540570132963-6bdb005c69fe',
+    'pixel-art-phone-case': 'photo-1574411662470-fa280b2fc399',
+    'typography-quote-tee': 'photo-1521572163474-6864f9cf17ab',
+    'minimalist-coffee-mug': 'photo-1514432324607-2e2be62dbd45',
+  };
+
   for (const p of productData) {
     const existing = await prisma.product.findUnique({ where: { slug: p.slug } });
     if (existing) continue;
+
+    // Use stable Unsplash image URL with fallback
+    const imageId = imageMap[p.slug] || 'photo-1521572163474-6864f9cf17ab';
+    const imageUrl = `https://images.unsplash.com/${imageId}?w=800&q=80`;
 
     const product = await prisma.product.create({
       data: {
@@ -236,7 +254,7 @@ async function main() {
         images: {
           create: [
             {
-              url: `https://source.unsplash.com/800x800/?${encodeURIComponent(p.title.split(' ').slice(0, 2).join(','))}`,
+              url: imageUrl,
               isPrimary: true,
             },
           ],
