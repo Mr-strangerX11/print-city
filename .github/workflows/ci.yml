@@ -52,7 +52,7 @@ jobs:
           POSTGRES_PASSWORD: ap_pass
           POSTGRES_DB: ap_test
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U ap_user"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -92,11 +92,15 @@ jobs:
         run: pnpm --filter api exec prisma migrate deploy
         env:
           DATABASE_URL: postgresql://ap_user:ap_pass@localhost:5432/ap_test
+          PGUSER: ap_user
+          PGPASSWORD: ap_pass
 
       - name: Run API tests
-        run: pnpm --filter api test --passWithNoTests
+        run: pnpm --filter api test -- --passWithNoTests
         env:
           DATABASE_URL: postgresql://ap_user:ap_pass@localhost:5432/ap_test
+          PGUSER: ap_user
+          PGPASSWORD: ap_pass
           REDIS_URL: redis://localhost:6379
           JWT_SECRET: ci-test-secret
           JWT_REFRESH_SECRET: ci-test-refresh-secret
