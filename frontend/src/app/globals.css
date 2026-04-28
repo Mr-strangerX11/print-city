@@ -1,0 +1,438 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Design-system tokens ─────────────────────────────────────────── */
+@layer base {
+  :root {
+    /* shadcn/radix compat */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 262 83% 58%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 262 83% 58%;
+    --radius: 0.75rem;
+
+    /* ── Light-mode palette ── */
+    --page-bg:         #F8FAFC;
+    --surface:         #FFFFFF;
+    --surface-alt:     #F1F5F9;
+    --surface-raised:  #FFFFFF;
+
+    --nav-bg:          rgba(255,255,255,0.97);
+    --nav-border:      rgba(0,0,0,0.07);
+
+    --text-heading:    #0F172A;
+    --text-body:       #374151;
+    --text-muted:      #6B7280;
+    --text-faint:      #9CA3AF;
+
+    --border-color:    rgba(0,0,0,0.08);
+    --border-subtle:   rgba(0,0,0,0.04);
+    --divider:         rgba(0,0,0,0.06);
+
+    --hover-bg:        rgba(0,0,0,0.04);
+    --active-bg:       rgba(0,0,0,0.07);
+    --input-bg:        rgba(0,0,0,0.03);
+    --input-border:    rgba(0,0,0,0.12);
+
+    --card-bg:         #FFFFFF;
+    --card-bg-alt:     rgba(0,0,0,0.02);
+    --glass-bg:        rgba(255,255,255,0.75);
+
+    --orb-purple:      rgba(124,58,237,0.08);
+    --orb-blue:        rgba(37,99,235,0.06);
+    --orb-cyan:        rgba(6,182,212,0.05);
+
+    --scrollbar-track: #F1F5F9;
+    --scrollbar-thumb: rgba(0,0,0,0.18);
+    --scrollbar-hover: rgba(0,0,0,0.30);
+  }
+
+  .dark {
+    /* shadcn/radix compat */
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 262 83% 65%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 262 83% 65%;
+
+    /* ── Dark-mode palette ── */
+    --page-bg:         #070B14;
+    --surface:         #0D1422;
+    --surface-alt:     #0B1120;
+    --surface-raised:  #111827;
+
+    --nav-bg:          rgba(8,13,26,0.97);
+    --nav-border:      rgba(255,255,255,0.08);
+
+    --text-heading:    #FFFFFF;
+    --text-body:       rgba(255,255,255,0.70);
+    --text-muted:      rgba(255,255,255,0.45);
+    --text-faint:      rgba(255,255,255,0.25);
+
+    --border-color:    rgba(255,255,255,0.08);
+    --border-subtle:   rgba(255,255,255,0.04);
+    --divider:         rgba(255,255,255,0.06);
+
+    --hover-bg:        rgba(255,255,255,0.05);
+    --active-bg:       rgba(255,255,255,0.08);
+    --input-bg:        rgba(255,255,255,0.05);
+    --input-border:    rgba(255,255,255,0.12);
+
+    --card-bg:         #0D1422;
+    --card-bg-alt:     rgba(255,255,255,0.03);
+    --glass-bg:        rgba(13,20,34,0.80);
+
+    --orb-purple:      rgba(124,58,237,0.28);
+    --orb-blue:        rgba(37,99,235,0.22);
+    --orb-cyan:        rgba(6,182,212,0.12);
+
+    --scrollbar-track: #080D1A;
+    --scrollbar-thumb: rgba(255,255,255,0.12);
+    --scrollbar-hover: rgba(255,255,255,0.22);
+  }
+}
+
+/* ── Base resets ──────────────────────────────────────────────────── */
+@layer base {
+  * { @apply border-border; }
+  html, body {
+    background-color: var(--page-bg);
+    color: var(--text-heading);
+    @apply antialiased;
+  }
+}
+
+/* ── Gradient text ────────────────────────────────────────────────── */
+@layer utilities {
+  .gradient-text {
+    @apply bg-brand-gradient bg-clip-text text-transparent;
+  }
+  .gradient-border {
+    border: 1px solid transparent;
+    background: linear-gradient(white, white) padding-box,
+      linear-gradient(135deg, #7C3AED, #2563EB, #06B6D4) border-box;
+  }
+  .dark .gradient-border {
+    background: linear-gradient(#0D1422, #0D1422) padding-box,
+      linear-gradient(135deg, #7C3AED, #2563EB, #06B6D4) border-box;
+  }
+  .glass {
+    @apply backdrop-blur-md;
+    background: var(--glass-bg);
+    border: 1px solid var(--border-color);
+  }
+}
+
+/* ── Smooth scrolling ─────────────────────────────────────────────── */
+html { scroll-behavior: smooth; }
+
+/* ── Scrollbar ────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-hover); }
+
+/* ── Focus ring ───────────────────────────────────────────────────── */
+:focus-visible { outline: 2px solid #7C3AED; outline-offset: 2px; border-radius: 4px; }
+
+/* ── Marquee ──────────────────────────────────────────────────────── */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.animate-marquee { animation: marquee 30s linear infinite; }
+.animate-marquee-fast { animation: marquee 18s linear infinite; }
+
+/* ── Float badge ──────────────────────────────────────────────────── */
+@keyframes floatY {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+.animate-float { animation: floatY 4s ease-in-out infinite; }
+.animate-float-slow { animation: floatY 6s ease-in-out infinite; }
+.animate-float-delayed { animation: floatY 4s ease-in-out 1.5s infinite; }
+
+/* ── Pulse dot ────────────────────────────────────────────────────── */
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(1.4); }
+}
+.animate-pulse-dot { animation: pulseDot 1.5s ease-in-out infinite; }
+
+/* ── Shimmer text ─────────────────────────────────────────────────── */
+@keyframes shimmer {
+  from { background-position: -200% center; }
+  to   { background-position: 200% center; }
+}
+.shimmer-text {
+  background: linear-gradient(90deg, #7C3AED 0%, #06B6D4 50%, #7C3AED 100%);
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 4s linear infinite;
+}
+
+/* ── Section reveal ───────────────────────────────────────────────── */
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.reveal-up { animation: revealUp 0.6s ease-out both; }
+.reveal-up-delay-1 { animation-delay: 0.1s; }
+.reveal-up-delay-2 { animation-delay: 0.2s; }
+.reveal-up-delay-3 { animation-delay: 0.3s; }
+
+/* ── Mesh gradient background (theme-aware) ───────────────────────── */
+.mesh-bg {
+  background-color: var(--page-bg);
+  background-image:
+    radial-gradient(ellipse 80% 80% at 20% 20%, var(--orb-purple) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 60% at 80% 80%, var(--orb-blue)   0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 50% 50%, var(--orb-cyan)   0%, transparent 60%);
+}
+
+/* ── Glass card (theme-aware) ─────────────────────────────────────── */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+}
+
+/* ── Dark card (theme-aware) ──────────────────────────────────────── */
+.dark-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  backdrop-filter: blur(8px);
+}
+
+/* ── Dot grid (theme-aware) ───────────────────────────────────────── */
+.dot-grid {
+  background-image: radial-gradient(circle, var(--border-color) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* ── Section backgrounds (theme-aware) ───────────────────────────── */
+.section-dark     { background-color: var(--page-bg); }
+.section-dark-alt { background-color: var(--surface-alt); }
+
+/* ── Card with top highlight (theme-aware) ────────────────────────── */
+.card-hi {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  box-shadow: inset 0 1px 0 var(--border-subtle);
+  backdrop-filter: blur(12px);
+}
+
+/* ── Orb decorations (theme-aware) ───────────────────────────────── */
+.orb-purple { background: radial-gradient(circle, var(--orb-purple) 0%, transparent 70%); }
+.orb-blue   { background: radial-gradient(circle, var(--orb-blue)   0%, transparent 70%); }
+
+/* ── Card glow on hover ───────────────────────────────────────────── */
+.card-glow {
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+.card-glow:hover {
+  border-color: rgba(139,92,246,0.3) !important;
+  box-shadow: 0 0 0 1px rgba(139,92,246,0.12),
+              0 24px 48px rgba(0,0,0,0.25),
+              0 0 80px rgba(139,92,246,0.08);
+  transform: translateY(-4px);
+}
+.dark .card-glow:hover {
+  box-shadow: 0 0 0 1px rgba(139,92,246,0.12),
+              0 24px 48px rgba(0,0,0,0.45),
+              0 0 80px rgba(139,92,246,0.08);
+}
+
+/* ── Button primary glow ──────────────────────────────────────────── */
+.btn-glow {
+  box-shadow: 0 0 24px rgba(124,58,237,0.45), 0 6px 20px rgba(0,0,0,0.2);
+  transition: box-shadow 0.25s ease, transform 0.15s ease;
+}
+.btn-glow:hover {
+  box-shadow: 0 0 44px rgba(124,58,237,0.65), 0 10px 28px rgba(0,0,0,0.3);
+  transform: translateY(-2px);
+}
+.btn-glow:active { transform: scale(0.98) !important; }
+
+/* ── Stat number gradient ─────────────────────────────────────────── */
+.stat-num {
+  background: linear-gradient(135deg, #E9D5FF 0%, #93C5FD 55%, #67E8F9 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+}
+
+/* ── Neon ring ────────────────────────────────────────────────────── */
+.neon-ring {
+  border: 1.5px solid rgba(139,92,246,0.55);
+  box-shadow:
+    0 0 30px rgba(139,92,246,0.35),
+    0 0 70px rgba(139,92,246,0.18),
+    inset 0 0 30px rgba(139,92,246,0.06);
+}
+
+/* ── Neon pulse animation ─────────────────────────────────────────── */
+@keyframes neonPulse {
+  0%, 100% { box-shadow: 0 0 30px rgba(139,92,246,0.35), 0 0 70px rgba(139,92,246,0.18); }
+  50%       { box-shadow: 0 0 50px rgba(139,92,246,0.55), 0 0 100px rgba(139,92,246,0.28); }
+}
+.neon-pulse { animation: neonPulse 3s ease-in-out infinite; }
+
+/* ── Slow pulse ───────────────────────────────────────────────────── */
+@keyframes pulseSlow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50%       { opacity: 0.7; transform: scale(1.08); }
+}
+.animate-pulse-slow { animation: pulseSlow 5s ease-in-out infinite; }
+
+/* ── Fade in ──────────────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.animate-fade-in { animation: fadeIn 0.2s ease-out both; }
+
+/* ── Slide up (dropdowns) ─────────────────────────────────────────── */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up { animation: slideUp 0.2s ease-out both; }
+
+/* ── Marquee edge fade ────────────────────────────────────────────── */
+.marquee-fade {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 6%, black 94%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, black 6%, black 94%, transparent 100%);
+}
+
+/* ── Shine sweep on hover ─────────────────────────────────────────── */
+@keyframes shineSweep {
+  from { transform: translateX(-100%) skewX(-15deg); }
+  to   { transform: translateX(200%) skewX(-15deg); }
+}
+.shine-hover { position: relative; overflow: hidden; }
+.shine-hover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.07) 50%, transparent 100%);
+  transform: translateX(-100%) skewX(-15deg);
+}
+.shine-hover:hover::after { animation: shineSweep 0.7s ease forwards; }
+
+/* ── Scrollbar hide ───────────────────────────────────────────────── */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ── Global dark-mode overrides for Tailwind gray utility classes ─── */
+/*    Applied to all pages that use bg-white / bg-gray-* / text-gray-* */
+.dark .bg-white          { background-color: var(--surface) !important; }
+.dark .bg-gray-50        { background-color: var(--page-bg) !important; }
+.dark .bg-gray-100       { background-color: var(--surface-alt) !important; }
+.dark .bg-gray-200       { background-color: var(--surface-alt) !important; }
+.dark .border-gray-50    { border-color: var(--border-subtle) !important; }
+.dark .border-gray-100   { border-color: var(--border-color) !important; }
+.dark .border-gray-200   { border-color: var(--border-color) !important; }
+.dark .text-gray-900     { color: var(--text-heading) !important; }
+.dark .text-gray-800     { color: var(--text-heading) !important; }
+.dark .text-gray-700     { color: var(--text-body) !important; }
+.dark .text-gray-600     { color: var(--text-body) !important; }
+.dark .text-gray-500     { color: var(--text-muted) !important; }
+.dark .text-gray-400     { color: var(--text-faint) !important; }
+.dark .hover\:bg-gray-50:hover  { background-color: var(--hover-bg) !important; }
+.dark .hover\:bg-gray-100:hover { background-color: var(--active-bg) !important; }
+.dark .divide-gray-100>*+* { border-color: var(--border-color) !important; }
+.dark .divide-gray-200>*+* { border-color: var(--border-color) !important; }
+/* Input fields */
+.dark input:not([class*="text-"]),
+.dark textarea:not([class*="text-"]),
+.dark select:not([class*="text-"]) {
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+  color: var(--text-heading);
+  color-scheme: dark;
+}
+.dark input::placeholder,
+.dark textarea::placeholder { color: var(--text-faint); }
+/* Tables */
+.dark table { color: var(--text-heading); }
+.dark thead { background-color: var(--surface-alt); }
+.dark tbody tr:hover { background-color: var(--hover-bg); }
+.dark th, .dark td { border-color: var(--border-color); }
+/* Badges — keep colored ones, soften gray ones */
+.dark .bg-blue-50   { background-color: rgba(37,99,235,0.12) !important; }
+.dark .bg-green-50  { background-color: rgba(16,185,129,0.10) !important; }
+.dark .bg-red-50    { background-color: rgba(239,68,68,0.10) !important; }
+.dark .bg-yellow-50 { background-color: rgba(234,179,8,0.10) !important; }
+.dark .bg-purple-50 { background-color: rgba(124,58,237,0.12) !important; }
+.dark .text-blue-700   { color: #93C5FD !important; }
+.dark .text-green-700  { color: #6EE7B7 !important; }
+.dark .text-red-700    { color: #FCA5A5 !important; }
+.dark .text-yellow-700 { color: #FDE68A !important; }
+.dark .text-purple-700 { color: #C4B5FD !important; }
+.dark .border-blue-100   { border-color: rgba(37,99,235,0.2) !important; }
+.dark .border-green-100  { border-color: rgba(16,185,129,0.2) !important; }
+.dark .border-red-100    { border-color: rgba(239,68,68,0.2) !important; }
+.dark .border-yellow-100 { border-color: rgba(234,179,8,0.2) !important; }
+
+/* ── Dashboard / admin input shared style ─────────────────────────── */
+.theme-input {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text-heading);
+  border-radius: 0.75rem;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
+}
+.theme-input:focus {
+  outline: none;
+  border-color: rgba(124,58,237,0.5);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+}
+.theme-input::placeholder { color: var(--text-faint); }
+
+/* ── Dashboard card ───────────────────────────────────────────────── */
+.theme-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+}
+
+/* ── Table theme ──────────────────────────────────────────────────── */
+.theme-table thead tr { background: var(--surface-alt); }
+.theme-table th, .theme-table td { border-bottom: 1px solid var(--border-color); }

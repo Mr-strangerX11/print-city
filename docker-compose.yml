@@ -35,7 +35,7 @@ services:
 
   api:
     build:
-      context: ./apps/api
+      context: ./backend
       dockerfile: Dockerfile
     container_name: ap_api
     restart: unless-stopped
@@ -52,12 +52,12 @@ services:
       redis:
         condition: service_healthy
     volumes:
-      - ./apps/api:/app
+      - ./backend:/app
       - /app/node_modules
 
   web:
     build:
-      context: ./apps/web
+      context: ./frontend
       dockerfile: Dockerfile
     container_name: ap_web
     restart: unless-stopped

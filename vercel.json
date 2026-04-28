@@ -5,14 +5,14 @@
   "installCommand": "pnpm install && pnpm --filter @ap/api exec prisma generate",
   "builds": [
     {
-      "src": "apps/api/src/lambda.ts",
+      "src": "backend/src/lambda.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "apps/api/src/lambda.ts"
+      "dest": "backend/src/lambda.ts"
     }
   ]
 }
