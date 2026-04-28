@@ -48,9 +48,15 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
-    MongooseModule.forRoot(process.env.DATABASE_URL as string, {
-      lazyConnection: true, // Defer DB connection until first use (prevents timeout in serverless)
-    }),
+    // Only initialize MongoDB if DATABASE_URL is present
+    ...(process.env.DATABASE_URL
+      ? [
+          MongooseModule.forRoot(process.env.DATABASE_URL as string, {
+            lazyConnection: true,
+            serverSelectionTimeoutMS: 5000, // Fail fast if DB is unreachable
+          }),
+        ]
+      : []),
     MongooseModule.forFeature([
       { name: AuditLog.name, schema: AuditLogSchema },
       { name: Product.name, schema: ProductSchema },
