@@ -1,8 +1,9 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
-export default function EsewaFailurePage() {
+function EsewaFailureContent() {
   const params = useSearchParams();
   const router = useRouter();
   const orderId = params.get('order_id');
@@ -35,5 +36,13 @@ export default function EsewaFailurePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function EsewaFailurePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-zinc-950" />}>
+      <EsewaFailureContent />
+    </Suspense>
   );
 }

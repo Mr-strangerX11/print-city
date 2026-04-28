@@ -1,16 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? '';
 
-export default function EsewaSuccessPage() {
+function EsewaSuccessContent() {
   const params = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [error, setError] = useState<string | null>(null);
-  const [orderId, setOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     const data = params.get('data');
@@ -26,7 +25,6 @@ export default function EsewaSuccessPage() {
       .then(async (res) => {
         const json = await res.json();
         if (!res.ok) throw new Error(json.message ?? 'Verification failed');
-        setOrderId(json.orderId);
         setStatus('success');
         setTimeout(() => router.push(`/orders/${json.orderId}`), 2000);
       })
@@ -77,5 +75,13 @@ export default function EsewaSuccessPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function EsewaSuccessPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-zinc-950" />}>
+      <EsewaSuccessContent />
+    </Suspense>
   );
 }

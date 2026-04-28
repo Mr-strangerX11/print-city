@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? '';
 
-export default function KhaltiVerifyPage() {
+function KhaltiVerifyContent() {
   const params = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
@@ -78,5 +78,13 @@ export default function KhaltiVerifyPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function KhaltiVerifyPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-zinc-950" />}>
+      <KhaltiVerifyContent />
+    </Suspense>
   );
 }

@@ -40,7 +40,9 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.5",
+    "@next/eslint-plugin-next": "^16.2.4",
+    "@typescript-eslint/eslint-plugin": "^8.59.0",
+    "@typescript-eslint/parser": "^8.59.0",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^22.10.0",
     "@types/react": "^19.0.3",

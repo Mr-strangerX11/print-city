@@ -1,6 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "pnpm --filter @ap/api exec prisma generate",
+  "buildCommand": "pnpm --filter @ap/api build",
+  "outputDirectory": "public",
   "installCommand": "pnpm install && pnpm --filter @ap/api exec prisma generate",
   "builds": [
     {
