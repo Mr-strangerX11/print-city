@@ -4,8 +4,6 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
-import { join } from 'path';
-import { mkdir } from 'fs/promises';
 import * as express from 'express';
 
 let cachedApp: NestExpressApplication | null = null;
@@ -23,7 +21,7 @@ export async function createNestApp(): Promise<NestExpressApplication> {
   const isDev = process.env.NODE_ENV !== 'production';
   app.enableCors({
     origin: isDev
-      ? true  // allow all origins in development
+      ? true
       : (process.env.FRONTEND_URL ?? 'http://localhost:3000'),
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
@@ -52,28 +50,7 @@ export async function createNestApp(): Promise<NestExpressApplication> {
   return app;
 }
 
-async function bootstrap() {
-  const app = await createNestApp();
-
-  const uploadsDir = join(process.cwd(), 'uploads');
-  await mkdir(uploadsDir, { recursive: true });
-  app.useStaticAssets(uploadsDir, { prefix: '/uploads' });
-
-  const port = process.env.API_PORT ?? 4000;
-  await app.getHttpAdapter().getHttpServer().listen(port);
-  console.log(`🚀 API running on http://localhost:${port}/api`);
-  console.log(`📚 Swagger docs at http://localhost:${port}/docs`);
-}
-
-// For local development
-if (require.main === module) {
-  bootstrap().catch((err) => {
-    console.error('Failed to start server:', err);
-    process.exit(1);
-  });
-}
-
-// For Lambda/Vercel - export the Express server
+// Lambda/Vercel serverless handler
 export default async () => {
   if (!cachedApp) {
     cachedApp = await createNestApp();
