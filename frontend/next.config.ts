@@ -24,7 +24,8 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '',
   },
   async rewrites() {
-    // Proxy /api/* → backend during dev so browser never crosses origin
+    // Only proxy in local dev — in production the browser calls the API URL directly
+    if (process.env.NODE_ENV === 'production') return [];
     return [
       {
         source: '/api/:path*',
