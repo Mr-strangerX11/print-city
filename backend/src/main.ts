@@ -50,8 +50,8 @@ export async function createNestApp(AppModuleClass = ActiveModule): Promise<Nest
     }),
   );
 
-  // Health check endpoint (simple, no DB dependency)
-  app.get('/health', (req, res) => {
+  // Health check endpoint (simple, no DB dependency) — use Express directly
+  expressApp.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
