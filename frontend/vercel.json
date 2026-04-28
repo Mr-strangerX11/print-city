@@ -2,5 +2,5 @@
   "framework": "nextjs",
   "buildCommand": "pnpm build",
   "devCommand": "pnpm dev",
-  "installCommand": "pnpm install"
+  "installCommand": "npm install -g pnpm@9 && pnpm install"
 }
