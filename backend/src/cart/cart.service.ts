@@ -19,11 +19,11 @@ export class CartService {
     @InjectModel(Vendor.name) private vendorModel: Model<VendorDocument>,
   ) {}
 
-  private async getOrCreateCart(userId: string) {
+  private async getOrCreateCart(userId: string): Promise<CartDocument> {
     const uid = new Types.ObjectId(userId);
-    let cart = await this.cartModel.findOne({ userId: uid }).lean().exec();
+    let cart = await this.cartModel.findOne({ userId: uid }).exec();
     if (!cart) {
-      cart = (await this.cartModel.create({ userId: uid })).toObject();
+      cart = await this.cartModel.create({ userId: uid });
     }
     return cart;
   }
