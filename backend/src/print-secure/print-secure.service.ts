@@ -93,7 +93,7 @@ export class PrintSecureService {
 
   // ─── Get print job status ───────────────────────────────────────────────────
 
-  async getJobStatus(jobId: string, adminId: string) {
+  async getJobStatus(jobId: string, adminId: string): Promise<any> {
     const job = await this.printJobModel
       .findById(jobId)
       .populate('designId', 'title')

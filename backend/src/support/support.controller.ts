@@ -15,7 +15,7 @@ export class SupportController {
   }
 
   @Get('tickets')
-  list(@CurrentUser() user: any, @Query() query: any) {
+  list(@CurrentUser() user: any, @Query() query: any): Promise<any> {
     return this.support.listTickets(user.id, user.role, query);
   }
 
@@ -23,7 +23,7 @@ export class SupportController {
   stats() { return this.support.getStats(); }
 
   @Get('tickets/:id')
-  getOne(@Param('id') id: string, @CurrentUser() user: any) {
+  getOne(@Param('id') id: string, @CurrentUser() user: any): Promise<any> {
     return this.support.getTicket(id, user.id, user.role);
   }
 

@@ -27,13 +27,13 @@ export class ProductsController {
 
   @Public()
   @Get()
-  findAll(@Query() query: any, @CurrentUser() user: any) {
+  findAll(@Query() query: any, @CurrentUser() user: any): Promise<any> {
     return this.productsService.findAll(query, user?.id, user?.role);
   }
 
   @Public()
   @Get(':slug')
-  findOne(@Param('slug') slug: string) {
+  findOne(@Param('slug') slug: string): Promise<any> {
     return this.productsService.findBySlug(slug);
   }
 
@@ -50,7 +50,7 @@ export class ProductsController {
     @Body() dto: Partial<CreateProductDto>,
     @CurrentUser('id') userId: string,
     @CurrentUser('role') role: Role,
-  ) {
+  ): Promise<any> {
     return this.productsService.update(id, dto, userId, role);
   }
 

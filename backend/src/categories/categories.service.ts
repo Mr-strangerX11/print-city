@@ -15,7 +15,7 @@ export class CreateCategoryDto {
 export class CategoriesService {
   constructor(@InjectModel(Category.name) private categoryModel: Model<CategoryDocument>) {}
 
-  async findAll() {
+  async findAll(): Promise<any> {
     const categories = await this.categoryModel
       .find({ parentId: null })
       .sort({ name: 1 })
@@ -33,7 +33,7 @@ export class CategoriesService {
     return result;
   }
 
-  async findOne(slug: string) {
+  async findOne(slug: string): Promise<any> {
     const cat = await this.categoryModel.findOne({ slug }).lean().exec();
     if (!cat) throw new NotFoundException('Category not found');
 

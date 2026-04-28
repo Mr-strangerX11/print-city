@@ -15,15 +15,15 @@ export class VendorsController {
 
   @Public()
   @Get()
-  findAll(@Query() query: any) { return this.svc.findAll(query); }
+  findAll(@Query() query: any): Promise<any> { return this.svc.findAll(query); }
 
   @Public()
   @Get(':slug')
-  findBySlug(@Param('slug') slug: string) { return this.svc.findBySlug(slug); }
+  findBySlug(@Param('slug') slug: string): Promise<any> { return this.svc.findBySlug(slug); }
 
   @Get('me/profile')
   @Roles(Role.VENDOR)
-  getProfile(@CurrentUser('id') userId: string) { return this.svc.getProfile(userId); }
+  getProfile(@CurrentUser('id') userId: string): Promise<any> { return this.svc.getProfile(userId); }
 
   @Patch('me/profile')
   @Roles(Role.VENDOR)

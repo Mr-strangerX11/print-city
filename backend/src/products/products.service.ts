@@ -38,7 +38,7 @@ export class ProductsService {
     @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
   ) {}
 
-  async findAll(query: QueryParams, userId?: string, userRole?: Role) {
+  async findAll(query: QueryParams, userId?: string, userRole?: Role): Promise<any> {
     const page = Number(query.page) || 1;
     const limit = Math.min(Number(query.limit) || 20, 100);
     const skip = (page - 1) * limit;
@@ -104,7 +104,7 @@ export class ProductsService {
     };
   }
 
-  async findBySlug(slug: string) {
+  async findBySlug(slug: string): Promise<any> {
     const product = await this.productModel.findOne({ slug }).lean().exec();
     if (!product) throw new NotFoundException('Product not found');
 
@@ -147,7 +147,7 @@ export class ProductsService {
     return { ...product.toObject(), variants, images };
   }
 
-  async update(id: string, dto: Partial<CreateProductDto>, userId: string, role: Role) {
+  async update(id: string, dto: Partial<CreateProductDto>, userId: string, role: Role): Promise<any> {
     const product = await this.productModel.findById(id).lean().exec();
     if (!product) throw new NotFoundException('Product not found');
 

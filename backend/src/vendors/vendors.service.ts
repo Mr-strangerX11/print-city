@@ -12,7 +12,7 @@ export class VendorsService {
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
   ) {}
 
-  async findAll(query: any) {
+  async findAll(query: any): Promise<any> {
     const page = Number(query.page) || 1;
     const limit = 20;
     const skip = (page - 1) * limit;
@@ -39,7 +39,7 @@ export class VendorsService {
     return result;
   }
 
-  async findBySlug(slug: string) {
+  async findBySlug(slug: string): Promise<any> {
     const vendor = await this.vendorModel
       .findOne({ storeSlug: slug })
       .populate('userId', 'name avatar')
@@ -73,7 +73,7 @@ export class VendorsService {
     return vendor;
   }
 
-  async getProfile(userId: string) {
+  async getProfile(userId: string): Promise<any> {
     const vendor = await this.vendorModel
       .findOne({ userId: new Types.ObjectId(userId) })
       .populate('userId', 'name email avatar')

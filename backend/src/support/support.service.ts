@@ -34,7 +34,7 @@ export class SupportService {
     return { ...ticket.toObject(), messages: [message] };
   }
 
-  async listTickets(userId: string, role: Role, query: any) {
+  async listTickets(userId: string, role: Role, query: any): Promise<any> {
     const page = Math.max(1, Number(query.page) || 1);
     const limit = Math.min(Number(query.limit) || 20, 100);
     const skip = (page - 1) * limit;
@@ -66,7 +66,7 @@ export class SupportService {
     return { items, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
   }
 
-  async getTicket(id: string, userId: string, role: Role) {
+  async getTicket(id: string, userId: string, role: Role): Promise<any> {
     const ticket = await this.ticketModel
       .findById(id)
       .populate('userId', 'name email')

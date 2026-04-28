@@ -16,7 +16,7 @@ export class ProductionController {
   }
 
   @Get('print-jobs')
-  listPrintJobs(@Query() query: any) { return this.production.listPrintJobs(query); }
+  listPrintJobs(@Query() query: any): Promise<any> { return this.production.listPrintJobs(query); }
 
   @Get('print-jobs/stats')
   printJobStats() { return this.production.getPrintJobStats(); }

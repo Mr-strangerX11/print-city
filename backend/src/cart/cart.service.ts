@@ -50,7 +50,7 @@ export class CartService {
     );
   }
 
-  async getCart(userId: string) {
+  async getCart(userId: string): Promise<any> {
     const cart = await this.getOrCreateCart(userId);
     const items = await this.populateCartItems(cart._id as Types.ObjectId);
     const subtotal = items.reduce((sum, item) => {

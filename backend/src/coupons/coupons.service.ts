@@ -28,7 +28,7 @@ export class CouponsService {
     });
   }
 
-  async findAll(query: any) {
+  async findAll(query: any): Promise<any> {
     const page = Math.max(1, Number(query.page) || 1);
     const limit = Math.min(Number(query.limit) || 20, 100);
     const skip = (page - 1) * limit;
@@ -51,7 +51,7 @@ export class CouponsService {
     return { items, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<any> {
     const coupon = await this.couponModel.findById(id).lean().exec();
     if (!coupon) throw new NotFoundException('Coupon not found');
     const usageCount = await this.couponUsageModel.countDocuments({ couponId: coupon._id });

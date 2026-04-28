@@ -45,7 +45,7 @@ export class ProductionService {
       .exec();
   }
 
-  async listPrintJobs(query: any) {
+  async listPrintJobs(query: any): Promise<any> {
     const page = Math.max(1, Number(query.page) || 1);
     const limit = Math.min(Number(query.limit) || 20, 100);
     const skip = (page - 1) * limit;

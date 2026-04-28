@@ -15,13 +15,13 @@ export class CouponsController {
   create(@Body() dto: CreateCouponDto) { return this.coupons.create(dto); }
 
   @Get() @Roles(Role.ADMIN)
-  findAll(@Query() query: any) { return this.coupons.findAll(query); }
+  findAll(@Query() query: any): Promise<any> { return this.coupons.findAll(query); }
 
   @Get('stats') @Roles(Role.ADMIN)
   stats() { return this.coupons.getStats(); }
 
   @Get(':id') @Roles(Role.ADMIN)
-  findOne(@Param('id') id: string) { return this.coupons.findOne(id); }
+  findOne(@Param('id') id: string): Promise<any> { return this.coupons.findOne(id); }
 
   @Patch(':id') @Roles(Role.ADMIN)
   update(@Param('id') id: string, @Body() dto: Partial<CreateCouponDto>) { return this.coupons.update(id, dto); }

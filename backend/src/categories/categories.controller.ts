@@ -13,11 +13,11 @@ export class CategoriesController {
 
   @Public()
   @Get()
-  findAll() { return this.svc.findAll(); }
+  findAll(): Promise<any> { return this.svc.findAll(); }
 
   @Public()
   @Get(':slug')
-  findOne(@Param('slug') slug: string) { return this.svc.findOne(slug); }
+  findOne(@Param('slug') slug: string): Promise<any> { return this.svc.findOne(slug); }
 
   @Post()
   @Roles(Role.ADMIN)

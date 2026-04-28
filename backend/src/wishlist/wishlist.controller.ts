@@ -9,7 +9,7 @@ export class WishlistController {
   constructor(private wishlistService: WishlistService) {}
 
   @Get()
-  getWishlist(@CurrentUser('id') userId: string) {
+  getWishlist(@CurrentUser('id') userId: string): Promise<any> {
     return this.wishlistService.getWishlist(userId);
   }
 

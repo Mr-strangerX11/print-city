@@ -24,12 +24,12 @@ export class OrdersController {
   }
 
   @Get()
-  findAll(@CurrentUser('id') userId: string, @CurrentUser('role') role: Role, @Query() query: any) {
+  findAll(@CurrentUser('id') userId: string, @CurrentUser('role') role: Role, @Query() query: any): Promise<any> {
     return this.ordersService.findAll(userId, role, query);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string, @CurrentUser('id') userId: string, @CurrentUser('role') role: Role) {
+  findOne(@Param('id') id: string, @CurrentUser('id') userId: string, @CurrentUser('role') role: Role): Promise<any> {
     return this.ordersService.findOne(id, userId, role);
   }
 

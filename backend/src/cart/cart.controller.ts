@@ -19,12 +19,12 @@ export class CartController {
   constructor(private cartService: CartService) {}
 
   @Get()
-  getCart(@CurrentUser('id') userId: string) {
+  getCart(@CurrentUser('id') userId: string): Promise<any> {
     return this.cartService.getCart(userId);
   }
 
   @Post('items')
-  addItem(@CurrentUser('id') userId: string, @Body() dto: AddItemDto) {
+  addItem(@CurrentUser('id') userId: string, @Body() dto: AddItemDto): Promise<any> {
     return this.cartService.addItem(userId, dto.variantId, dto.qty);
   }
 
@@ -33,12 +33,12 @@ export class CartController {
     @CurrentUser('id') userId: string,
     @Param('id') itemId: string,
     @Body() dto: UpdateItemDto,
-  ) {
+  ): Promise<any> {
     return this.cartService.updateItem(userId, itemId, dto.qty);
   }
 
   @Delete('items/:id')
-  removeItem(@CurrentUser('id') userId: string, @Param('id') itemId: string) {
+  removeItem(@CurrentUser('id') userId: string, @Param('id') itemId: string): Promise<any> {
     return this.cartService.removeItem(userId, itemId);
   }
 }

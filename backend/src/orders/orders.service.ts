@@ -142,7 +142,7 @@ export class OrdersService {
     };
   }
 
-  async findAll(userId: string, role: Role, query: any) {
+  async findAll(userId: string, role: Role, query: any): Promise<any> {
     const page = Number(query.page) || 1;
     const limit = Math.min(Number(query.limit) || 20, 100);
     const skip = (page - 1) * limit;
@@ -172,7 +172,7 @@ export class OrdersService {
     return { items, meta: { total, page, limit, totalPages: Math.ceil(total / limit) } };
   }
 
-  async findOne(id: string, userId: string, role: Role) {
+  async findOne(id: string, userId: string, role: Role): Promise<any> {
     const order = await this.orderModel
       .findById(id)
       .populate('userId', 'name email')

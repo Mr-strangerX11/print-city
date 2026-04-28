@@ -32,7 +32,7 @@ export class PrintSecureController {
   @Get('jobs/:id')
   @Roles('ADMIN')
   @ApiOperation({ summary: 'Admin: Get print job status' })
-  getJobStatus(@Param('id') id: string, @Req() req: any) {
+  getJobStatus(@Param('id') id: string, @Req() req: any): Promise<any> {
     return this.service.getJobStatus(id, req.user.id);
   }
 

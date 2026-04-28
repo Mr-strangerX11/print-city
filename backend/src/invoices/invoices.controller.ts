@@ -31,19 +31,19 @@ export class InvoicesController {
 
   // ── List (role-filtered) ─────────────────────────────────────────────────
   @Get()
-  findAll(@CurrentUser() user: any, @Query() query: InvoiceQueryDto) {
+  findAll(@CurrentUser() user: any, @Query() query: InvoiceQueryDto): Promise<any> {
     return this.invoices.findAll(user.id, user.role, query);
   }
 
   // ── By order ID ──────────────────────────────────────────────────────────
   @Get('order/:orderId')
-  findByOrder(@Param('orderId') orderId: string, @CurrentUser() user: any) {
+  findByOrder(@Param('orderId') orderId: string, @CurrentUser() user: any): Promise<any> {
     return this.invoices.findByOrder(orderId, user.id, user.role);
   }
 
   // ── Single invoice ───────────────────────────────────────────────────────
   @Get(':id')
-  findOne(@Param('id') id: string, @CurrentUser() user: any) {
+  findOne(@Param('id') id: string, @CurrentUser() user: any): Promise<any> {
     return this.invoices.findOne(id, user.id, user.role);
   }
 

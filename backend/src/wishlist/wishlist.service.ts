@@ -19,7 +19,7 @@ export class WishlistService {
     @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
   ) {}
 
-  async getWishlist(userId: string) {
+  async getWishlist(userId: string): Promise<any> {
     const uid = new Types.ObjectId(userId);
     const items = await this.wishlistItemModel
       .find({ userId: uid })
