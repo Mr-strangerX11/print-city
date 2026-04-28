@@ -14,6 +14,12 @@ const ActiveModule = process.env.REDIS_URL ? AppModule : AppLambdaModule;
 
 export async function createNestApp(AppModuleClass = ActiveModule): Promise<NestExpressApplication> {
   const expressApp = express();
+  
+  // Health check endpoint BEFORE app initialization (responds immediately)
+  expressApp.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
   const adapter = new ExpressAdapter(expressApp);
 
   const app = await NestFactory.create<NestExpressApplication>(AppModuleClass, adapter, {
@@ -49,11 +55,6 @@ export async function createNestApp(AppModuleClass = ActiveModule): Promise<Nest
       transformOptions: { enableImplicitConversion: true },
     }),
   );
-
-  // Health check endpoint (simple, no DB dependency) — use Express directly
-  expressApp.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
-  });
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('AP API')
