@@ -3,9 +3,10 @@ RUN npm install -g pnpm
 
 FROM base AS deps
 WORKDIR /app
+# Install build tools needed by native modules (bcrypt, sharp)
+RUN apk add --no-cache python3 make g++
 COPY package.json ./
-# --ignore-scripts prevents prisma generate postinstall from running before schema is available
-RUN pnpm install --no-frozen-lockfile --ignore-scripts
+RUN pnpm install --no-frozen-lockfile
 
 FROM base AS builder
 WORKDIR /app
