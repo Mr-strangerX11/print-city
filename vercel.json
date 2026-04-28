@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "buildCommand": "pnpm --filter @ap/api exec prisma generate",
   "installCommand": "pnpm install && pnpm --filter @ap/api exec prisma generate",
   "builds": [
     {

@@ -4,7 +4,8 @@ RUN npm install -g pnpm
 FROM base AS deps
 WORKDIR /app
 COPY package.json ./
-RUN pnpm install --no-frozen-lockfile
+# --ignore-scripts prevents prisma generate postinstall from running before schema is available
+RUN pnpm install --no-frozen-lockfile --ignore-scripts
 
 FROM base AS builder
 WORKDIR /app
@@ -15,7 +16,7 @@ RUN pnpm build
 
 FROM base AS runner
 WORKDIR /app
-ENV NODE_ENV production
+ENV NODE_ENV=production
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/prisma ./prisma
