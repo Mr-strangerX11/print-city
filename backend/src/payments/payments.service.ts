@@ -15,16 +15,21 @@ const KHALTI_PROD_BASE = 'https://khalti.com/api/v2';
 
 @Injectable()
 export class PaymentsService {
-  private stripe: Stripe;
+  private _stripe: Stripe | null = null;
 
   constructor(
     private config: ConfigService,
     private prisma: PrismaService,
     private ordersService: OrdersService,
-  ) {
-    this.stripe = new Stripe(this.config.get<string>('STRIPE_SECRET_KEY')!, {
-      apiVersion: '2025-02-24.acacia',
-    });
+  ) {}
+
+  private get stripe(): Stripe {
+    if (!this._stripe) {
+      const key = this.config.get<string>('STRIPE_SECRET_KEY');
+      if (!key) throw new BadRequestException('Stripe is not configured on this server');
+      this._stripe = new Stripe(key, { apiVersion: '2025-02-24.acacia' });
+    }
+    return this._stripe;
   }
 
   private get isProd() {
