@@ -1,12 +1,11 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-// In the browser, use the Next.js rewrite proxy (/api → backend).
-// This eliminates all CORS issues since the browser talks to the same origin.
-// In non-browser environments (e.g. server actions), fall back to the direct URL.
+// In dev the Next.js rewrite proxy forwards /api → localhost:4000/api.
+// In production rewrites are disabled, so use the absolute backend URL directly.
 const API_URL =
-  typeof window !== 'undefined'
-    ? '/api'  // relative — routed via next.config rewrites to http://localhost:4000/api
+  typeof window !== 'undefined' && process.env.NODE_ENV !== 'production'
+    ? '/api'
     : (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api');
 
 export const api = axios.create({
