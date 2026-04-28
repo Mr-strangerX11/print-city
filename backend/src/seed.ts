@@ -3,7 +3,7 @@
  * Populates users, vendors, categories, products, and variants.
  */
 import mongoose, { Types } from 'mongoose';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 // ─── Schemas ───────────────────────────────────────────────────────────────
 

@@ -3,8 +3,6 @@ RUN npm install -g pnpm
 
 FROM base AS deps
 WORKDIR /app
-# Install build tools needed by native modules (bcrypt, sharp)
-RUN apk add --no-cache python3 make g++
 COPY package.json ./
 RUN pnpm install --no-frozen-lockfile
 

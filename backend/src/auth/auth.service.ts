@@ -11,7 +11,7 @@ import { UserService } from '../user/user.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { Role } from '../user/schemas/user.schema';
 import slugify from 'slugify';
 
