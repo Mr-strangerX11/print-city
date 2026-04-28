@@ -1,9 +1,10 @@
+import { UserModule } from './user/user.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
-import { PrismaModule } from './prisma/prisma.module';
+import { MongooseModule } from '@nestjs/mongoose';
 import { MailModule } from './mail/mail.module';
 import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './products/products.module';
@@ -37,7 +38,7 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
-    PrismaModule,
+    MongooseModule.forRoot(process.env.DATABASE_URL),
     MailModule,
     AuthModule,
     ProductsModule,
@@ -58,6 +59,7 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
     ProductionModule,
     SupportModule,
     QueuesModule,
+    UserModule,
     DesignsModule,
     PrintSecureModule,
   ],
