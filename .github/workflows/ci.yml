@@ -94,7 +94,7 @@ jobs:
           DATABASE_URL: postgresql://ap_user:ap_pass@localhost:5432/ap_test
 
       - name: Run API tests
-        run: pnpm --filter api test --passWithNoTests
+        run: pnpm --filter api test -- --passWithNoTests
         env:
           DATABASE_URL: postgresql://ap_user:ap_pass@localhost:5432/ap_test
           REDIS_URL: redis://localhost:6379
