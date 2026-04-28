@@ -1,12 +1,13 @@
 import { createNestApp } from './main';
+import { AppLambdaModule } from './app-lambda.module';
 import type { Request, Response } from 'express';
 
-let cachedServer: any = null;
+let cachedHandler: any = null;
 
 export default async (req: Request, res: Response) => {
-  if (!cachedServer) {
-    const app = await createNestApp();
-    cachedServer = app.getHttpAdapter().getInstance();
+  if (!cachedHandler) {
+    const app = await createNestApp(AppLambdaModule);
+    cachedHandler = app.getHttpAdapter().getInstance();
   }
-  cachedServer(req, res);
+  cachedHandler(req, res);
 };

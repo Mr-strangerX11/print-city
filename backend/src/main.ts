@@ -8,11 +8,11 @@ import express from 'express';
 
 let cachedApp: NestExpressApplication | null = null;
 
-export async function createNestApp(): Promise<NestExpressApplication> {
+export async function createNestApp(AppModuleClass = AppModule): Promise<NestExpressApplication> {
   const expressApp = express();
   const adapter = new ExpressAdapter(expressApp);
 
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, adapter, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModuleClass, adapter, {
     rawBody: true,
   });
 
