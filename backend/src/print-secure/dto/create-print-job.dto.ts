@@ -1,6 +1,6 @@
 import { IsString, IsEnum, IsInt, IsOptional, Min, Max, IsNumber } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { DesignPrintFormat, DesignColorMode } from '@prisma/client';
+import { DesignPrintFormat, DesignColorMode } from '../../common/enums';
 
 export class CreatePrintJobDto {
   @ApiProperty()

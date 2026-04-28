@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
 import { AddressesController } from './addresses.controller';
 import { AddressesService } from './addresses.service';
-import { PrismaModule } from '../prisma/prisma.module';
+import { Address, AddressSchema } from './schemas/address.schema';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [MongooseModule.forFeature([{ name: Address.name, schema: AddressSchema }])],
   controllers: [AddressesController],
   providers: [AddressesService],
 })

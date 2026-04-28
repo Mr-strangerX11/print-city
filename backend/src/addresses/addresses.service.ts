@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
 import { IsString, IsOptional, IsBoolean } from 'class-validator';
-import { PrismaService } from '../prisma/prisma.service';
+import { Address, AddressDocument } from './schemas/address.schema';
 
 export class CreateAddressDto {
   @IsString() label: string;
@@ -16,47 +18,54 @@ export class CreateAddressDto {
 
 @Injectable()
 export class AddressesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(@InjectModel(Address.name) private addressModel: Model<AddressDocument>) {}
 
   async list(userId: string) {
-    return this.prisma.address.findMany({
-      where: { userId },
-      orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }],
-    });
+    return this.addressModel
+      .find({ userId: new Types.ObjectId(userId) })
+      .sort({ isDefault: -1, createdAt: -1 })
+      .lean()
+      .exec();
   }
 
   async create(userId: string, dto: CreateAddressDto) {
+    const uid = new Types.ObjectId(userId);
     if (dto.isDefault) {
-      await this.prisma.address.updateMany({ where: { userId }, data: { isDefault: false } });
+      await this.addressModel.updateMany({ userId: uid }, { isDefault: false });
     }
-    return this.prisma.address.create({
-      data: { userId, ...dto, country: dto.country ?? 'Nepal' },
+    const addr = new this.addressModel({
+      userId: uid,
+      ...dto,
+      country: dto.country ?? 'Nepal',
     });
+    return addr.save();
   }
 
   async update(userId: string, id: string, dto: Partial<CreateAddressDto>) {
-    const addr = await this.prisma.address.findUnique({ where: { id } });
+    const addr = await this.addressModel.findById(id).exec();
     if (!addr) throw new NotFoundException('Address not found');
-    if (addr.userId !== userId) throw new ForbiddenException();
+    if (addr.userId.toString() !== userId) throw new ForbiddenException();
     if (dto.isDefault) {
-      await this.prisma.address.updateMany({ where: { userId }, data: { isDefault: false } });
+      await this.addressModel.updateMany({ userId: addr.userId }, { isDefault: false });
     }
-    return this.prisma.address.update({ where: { id }, data: dto });
+    Object.assign(addr, dto);
+    return addr.save();
   }
 
   async setDefault(userId: string, id: string) {
-    const addr = await this.prisma.address.findUnique({ where: { id } });
+    const addr = await this.addressModel.findById(id).exec();
     if (!addr) throw new NotFoundException('Address not found');
-    if (addr.userId !== userId) throw new ForbiddenException();
-    await this.prisma.address.updateMany({ where: { userId }, data: { isDefault: false } });
-    return this.prisma.address.update({ where: { id }, data: { isDefault: true } });
+    if (addr.userId.toString() !== userId) throw new ForbiddenException();
+    await this.addressModel.updateMany({ userId: addr.userId }, { isDefault: false });
+    addr.isDefault = true;
+    return addr.save();
   }
 
   async remove(userId: string, id: string) {
-    const addr = await this.prisma.address.findUnique({ where: { id } });
+    const addr = await this.addressModel.findById(id).exec();
     if (!addr) throw new NotFoundException('Address not found');
-    if (addr.userId !== userId) throw new ForbiddenException();
-    await this.prisma.address.delete({ where: { id } });
+    if (addr.userId.toString() !== userId) throw new ForbiddenException();
+    await this.addressModel.findByIdAndDelete(id);
     return { deleted: true };
   }
 }

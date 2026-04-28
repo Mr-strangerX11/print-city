@@ -5,18 +5,18 @@ import {
   BadRequestException,
   Logger,
 } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
 import { randomBytes } from 'crypto';
 import sharp from 'sharp';
 import PDFDocument from 'pdfkit';
 
-import { PrismaService } from '../prisma/prisma.service';
 import { SecureStorageService } from '../storage/secure-storage.service';
 import { CreatePrintJobDto } from './dto/create-print-job.dto';
-import { DesignPrintFormat } from '@prisma/client';
-
-// ─── Print format definitions ─────────────────────────────────────────────────
-// All measurements in mm. Bleed adds to each side.
+import { DesignPrintFormat } from '../common/enums';
+import { DesignPrintJob, DesignPrintJobDocument } from '../designs/schemas/design-print-job.schema';
+import { Design, DesignDocument } from '../designs/schemas/design.schema';
 
 const FORMATS: Record<
   DesignPrintFormat,
@@ -31,8 +31,8 @@ const FORMATS: Record<
 };
 
 const MM_TO_INCH = 1 / 25.4;
-const POINTS_PER_INCH = 72; // PDF uses 72pt/inch
-const MM_TO_PT = MM_TO_INCH * POINTS_PER_INCH; // 1mm = 2.8346pt
+const POINTS_PER_INCH = 72;
+const MM_TO_PT = MM_TO_INCH * POINTS_PER_INCH;
 
 function mmToPx(mm: number, dpi: number): number {
   return Math.round(mm * MM_TO_INCH * dpi);
@@ -47,7 +47,8 @@ export class PrintSecureService {
   private readonly logger = new Logger(PrintSecureService.name);
 
   constructor(
-    private prisma: PrismaService,
+    @InjectModel(DesignPrintJob.name) private printJobModel: Model<DesignPrintJobDocument>,
+    @InjectModel(Design.name) private designModel: Model<DesignDocument>,
     private storage: SecureStorageService,
     private config: ConfigService,
   ) {}
@@ -55,68 +56,53 @@ export class PrintSecureService {
   // ─── Create print job ───────────────────────────────────────────────────────
 
   async createPrintJob(adminId: string, dto: CreatePrintJobDto) {
-    const design = await this.prisma.design.findUnique({ where: { id: dto.designId } });
+    const design = await this.designModel.findById(dto.designId).lean().exec();
     if (!design) throw new NotFoundException('Design not found');
     if (design.status !== 'APPROVED') {
       throw new BadRequestException('Only approved designs can be printed');
     }
 
-    const job = await this.prisma.designPrintJob.create({
-      data: {
-        designId: dto.designId,
-        adminId,
-        format: dto.format,
-        colorMode: dto.colorMode ?? 'RGB',
-        copies: dto.copies ?? 1,
-        dpi: dto.dpi ?? 300,
-        bleed: dto.bleed ?? FORMATS[dto.format].defaultBleedMm,
-        notes: dto.notes,
-        status: 'QUEUED',
-      },
-      select: { id: true, status: true, format: true, copies: true, createdAt: true },
+    const job = await this.printJobModel.create({
+      designId: new Types.ObjectId(dto.designId),
+      adminId: new Types.ObjectId(adminId),
+      format: dto.format,
+      colorMode: dto.colorMode ?? 'RGB',
+      copies: dto.copies ?? 1,
+      dpi: dto.dpi ?? 300,
+      bleed: dto.bleed ?? FORMATS[dto.format].defaultBleedMm,
+      notes: dto.notes,
+      status: 'QUEUED',
     });
 
-    // Kick off async processing — don't await (returns immediately)
-    this.processJob(job.id).catch((err) => {
-      this.logger.error(`Print job ${job.id} failed: ${err.message}`);
-      this.prisma.designPrintJob.update({
-        where: { id: job.id },
-        data: { status: 'FAILED', error: err.message },
-      });
+    const jobObj = job.toObject();
+
+    // Kick off async processing
+    this.processJob(job._id.toString()).catch((err) => {
+      this.logger.error(`Print job ${job._id} failed: ${err.message}`);
+      this.printJobModel.findByIdAndUpdate(job._id, { status: 'FAILED', error: err.message });
     });
 
-    return job;
+    return {
+      id: jobObj._id,
+      status: jobObj.status,
+      format: jobObj.format,
+      copies: jobObj.copies,
+      createdAt: (jobObj as any).createdAt,
+    };
   }
 
   // ─── Get print job status ───────────────────────────────────────────────────
 
   async getJobStatus(jobId: string, adminId: string) {
-    const job = await this.prisma.designPrintJob.findUnique({
-      where: { id: jobId },
-      select: {
-        id: true,
-        status: true,
-        format: true,
-        dpi: true,
-        colorMode: true,
-        copies: true,
-        bleed: true,
-        notes: true,
-        startedAt: true,
-        completedAt: true,
-        error: true,
-        printToken: true,
-        printTokenExpiresAt: true,
-        adminId: true,
-        createdAt: true,
-        design: { select: { id: true, title: true } },
-      },
-    });
+    const job = await this.printJobModel
+      .findById(jobId)
+      .populate('designId', 'title')
+      .lean()
+      .exec();
 
     if (!job) throw new NotFoundException('Print job not found');
-    if (job.adminId !== adminId) throw new ForbiddenException('Access denied');
+    if (job.adminId.toString() !== adminId) throw new ForbiddenException('Access denied');
 
-    // Strip print token from response if expired
     const tokenValid =
       job.printToken &&
       job.printTokenExpiresAt &&
@@ -132,76 +118,61 @@ export class PrintSecureService {
   // ─── Issue one-time print render token ─────────────────────────────────────
 
   async issuePrintToken(jobId: string, adminId: string): Promise<{ printToken: string; expiresAt: Date }> {
-    const job = await this.prisma.designPrintJob.findUnique({ where: { id: jobId } });
+    const job = await this.printJobModel.findById(jobId).lean().exec();
     if (!job) throw new NotFoundException('Print job not found');
-    if (job.adminId !== adminId) throw new ForbiddenException('Access denied');
+    if (job.adminId.toString() !== adminId) throw new ForbiddenException('Access denied');
     if (job.status !== 'COMPLETED') throw new BadRequestException('Print job not completed yet');
 
     const printToken = randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 30 * 1000); // 30 seconds
+    const expiresAt = new Date(Date.now() + 30 * 1000);
 
-    await this.prisma.designPrintJob.update({
-      where: { id: jobId },
-      data: { printToken, printTokenExpiresAt: expiresAt },
-    });
+    await this.printJobModel.findByIdAndUpdate(jobId, { printToken, printTokenExpiresAt: expiresAt });
 
     return { printToken, expiresAt };
   }
 
-  // ─── Stream PDF directly to print dialog (no download) ─────────────────────
+  // ─── Stream PDF directly to print dialog ────────────────────────────────────
 
-  async streamPrintPdf(printToken: string): Promise<{
-    pdfBuffer: Buffer;
-    jobId: string;
-    copies: number;
-  }> {
-    const job = await this.prisma.designPrintJob.findUnique({
-      where: { printToken },
-      include: { design: { select: { storageKey: true, title: true } } },
-    });
+  async streamPrintPdf(printToken: string): Promise<{ pdfBuffer: Buffer; jobId: string; copies: number }> {
+    const job = await this.printJobModel
+      .findOne({ printToken })
+      .populate('designId', 'storageKey title')
+      .lean()
+      .exec();
 
     if (!job) throw new ForbiddenException('Invalid print token');
     if (!job.printTokenExpiresAt || job.printTokenExpiresAt < new Date()) {
       throw new ForbiddenException('Print token expired');
     }
 
-    // Invalidate token immediately (one-time use)
-    await this.prisma.designPrintJob.update({
-      where: { id: job.id },
-      data: { printToken: null, printTokenExpiresAt: null },
+    await this.printJobModel.findByIdAndUpdate(job._id, {
+      printToken: null,
+      printTokenExpiresAt: null,
     });
 
-    // Fetch original from private storage (backend only)
-    const originalBuffer = await this.storage.fetchFileBuffer(job.design.storageKey);
-
-    // Process to print-ready PDF
+    const design = job.designId as any;
+    const originalBuffer = await this.storage.fetchFileBuffer(design.storageKey);
     const pdfBuffer = await this.buildPrintPdf(originalBuffer, job);
 
-    return { pdfBuffer, jobId: job.id, copies: job.copies };
+    return { pdfBuffer, jobId: job._id.toString(), copies: job.copies };
   }
 
-  // ─── Internal: Process job (runs async) ────────────────────────────────────
+  // ─── Internal: Process job ──────────────────────────────────────────────────
 
   private async processJob(jobId: string): Promise<void> {
-    await this.prisma.designPrintJob.update({
-      where: { id: jobId },
-      data: { status: 'PROCESSING', startedAt: new Date() },
-    });
+    await this.printJobModel.findByIdAndUpdate(jobId, { status: 'PROCESSING', startedAt: new Date() });
 
-    const job = await this.prisma.designPrintJob.findUnique({
-      where: { id: jobId },
-      include: { design: { select: { storageKey: true, fileType: true } } },
-    });
+    const job = await this.printJobModel
+      .findById(jobId)
+      .populate('designId', 'storageKey fileType')
+      .lean()
+      .exec();
 
-    // We don't store the PDF — just validate it can be generated
-    // The actual generation happens at print time via streamPrintPdf
-    const originalBuffer = await this.storage.fetchFileBuffer(job!.design.storageKey);
-    await this.buildPrintPdf(originalBuffer, job!); // validate no errors
+    const design = (job as any).designId as any;
+    const originalBuffer = await this.storage.fetchFileBuffer(design.storageKey);
+    await this.buildPrintPdf(originalBuffer, job!);
 
-    await this.prisma.designPrintJob.update({
-      where: { id: jobId },
-      data: { status: 'COMPLETED', completedAt: new Date() },
-    });
+    await this.printJobModel.findByIdAndUpdate(jobId, { status: 'COMPLETED', completedAt: new Date() });
 
     this.logger.log(`Print job ${jobId} processed successfully`);
   }
@@ -216,36 +187,28 @@ export class PrintSecureService {
     const totalWidthMm = fmt.widthMm + bleedMm * 2;
     const totalHeightMm = fmt.heightMm + bleedMm * 2;
 
-    // Pixel dimensions at target DPI (with bleed)
     const pxWidth = mmToPx(totalWidthMm, dpi);
     const pxHeight = mmToPx(totalHeightMm, dpi);
 
-    // Resize image to print dimensions at DPI
-    let processed = await sharp(imageBuffer)
+    const processed = await sharp(imageBuffer)
       .resize(pxWidth, pxHeight, {
         fit: 'contain',
         background: { r: 255, g: 255, b: 255, alpha: 1 },
         withoutEnlargement: false,
       })
-      .withMetadata({ density: dpi }) // embed DPI metadata
-      .png({ compressionLevel: 1 })    // lossless for print quality
+      .withMetadata({ density: dpi })
+      .png({ compressionLevel: 1 })
       .toBuffer();
 
-    // CMYK conversion: Sharp doesn't natively support CMYK output,
-    // but we can tag the intent. Real CMYK requires ICC profile embedding.
-    // For production, integrate with LittleCMS or Ghostscript.
     if (job.colorMode === 'CMYK') {
-      this.logger.warn(
-        `Job ${job.id}: CMYK intent set. Embed ICC profile for full CMYK workflow.`,
-      );
+      this.logger.warn(`Job ${job._id ?? job.id}: CMYK intent set. Embed ICC profile for full CMYK workflow.`);
     }
 
-    // Build PDF with exact page size (including bleed)
     const pdfBuffer = await this.buildPdf(processed, {
       pageWidthPt: mmToPt(totalWidthMm),
       pageHeightPt: mmToPt(totalHeightMm),
       bleedPt: mmToPt(bleedMm),
-      jobId: job.id,
+      jobId: job._id?.toString() ?? job.id,
       format: fmt.label,
       dpi,
       colorMode: job.colorMode,
@@ -287,14 +250,12 @@ export class PrintSecureService {
       doc.on('end', () => resolve(Buffer.concat(chunks)));
       doc.on('error', reject);
 
-      // Place image full-page (covers bleed area)
       doc.image(imageBuffer, 0, 0, {
         width: opts.pageWidthPt,
         height: opts.pageHeightPt,
         cover: [opts.pageWidthPt, opts.pageHeightPt],
       });
 
-      // Draw crop marks if bleed > 0
       if (opts.bleedPt > 0) {
         this.drawCropMarks(doc, opts.pageWidthPt, opts.pageHeightPt, opts.bleedPt);
       }
@@ -309,8 +270,8 @@ export class PrintSecureService {
     pageH: number,
     bleed: number,
   ): void {
-    const markLen = mmToPt(5); // 5mm crop mark length
-    const gap = mmToPt(1);     // 1mm gap from bleed edge
+    const markLen = mmToPt(5);
+    const gap = mmToPt(1);
 
     doc.save();
     doc.lineWidth(0.25).strokeColor('#000000').opacity(0.9);
@@ -326,18 +287,15 @@ export class PrintSecureService {
       const leftX = x === bleed;
       const topY = y === bleed;
 
-      // Horizontal mark
       const hx1 = leftX ? x - gap - markLen : x + gap;
       const hx2 = leftX ? x - gap : x + gap + markLen;
       doc.moveTo(hx1, y).lineTo(hx2, y).stroke();
 
-      // Vertical mark
       const vy1 = topY ? y - gap - markLen : y + gap;
       const vy2 = topY ? y - gap : y + gap + markLen;
       doc.moveTo(x, vy1).lineTo(x, vy2).stroke();
     }
 
-    // Center registration marks (horizontal and vertical lines)
     const cx = pageW / 2;
     const cy = pageH / 2;
     const regR = mmToPt(2.5);

@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { MongooseModule } from '@nestjs/mongoose';
 
-import { PrismaModule } from './prisma/prisma.module';
 import { MailModule } from './mail/mail.module';
 import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './products/products.module';
@@ -25,6 +25,7 @@ import { ProductionModule } from './production/production.module';
 import { SupportModule } from './support/support.module';
 import { DesignsModule } from './designs/designs.module';
 import { PrintSecureModule } from './print-secure/print-secure.module';
+import { AuditLog, AuditLogSchema } from './common/schemas/audit-log.schema';
 
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
@@ -38,7 +39,8 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
-    PrismaModule,
+    MongooseModule.forRoot(process.env.DATABASE_URL as string),
+    MongooseModule.forFeature([{ name: AuditLog.name, schema: AuditLogSchema }]),
     MailModule,
     AuthModule,
     ProductsModule,

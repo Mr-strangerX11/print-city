@@ -2,7 +2,8 @@ import { Controller, Get, Post, Patch, Param, Body, Query } from '@nestjs/common
 import { SupportService } from './support.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
-import { TicketStatus, TicketPriority, Role } from '@prisma/client';
+import { TicketStatus, TicketPriority } from '../common/enums';
+import { Role } from '../user/schemas/user.schema';
 
 @Controller('support')
 export class SupportController {

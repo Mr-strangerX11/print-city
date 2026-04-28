@@ -1,5 +1,5 @@
 import { IsEnum, IsOptional, IsString, IsNumberString } from 'class-validator';
-import { InvoiceStatus } from '@prisma/client';
+import { InvoiceStatus } from '../../common/enums';
 
 export class InvoiceQueryDto {
   @IsOptional() @IsNumberString() page?: string;

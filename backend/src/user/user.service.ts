@@ -7,26 +7,26 @@ import { User, UserDocument } from './schemas/user.schema';
 export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
 
-  async findAll(): Promise<User[]> {
+  async findAll(): Promise<UserDocument[]> {
     return this.userModel.find().exec();
   }
 
-  async findById(id: string): Promise<User> {
+  async findById(id: string): Promise<UserDocument> {
     const user = await this.userModel.findById(id).exec();
     if (!user) throw new NotFoundException('User not found');
     return user;
   }
 
-  async findByEmail(email: string): Promise<User | null> {
+  async findByEmail(email: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ email }).exec();
   }
 
-  async create(data: Partial<User>): Promise<User> {
+  async create(data: Partial<User>): Promise<UserDocument> {
     const createdUser = new this.userModel(data);
     return createdUser.save();
   }
 
-  async update(id: string, data: Partial<User>): Promise<User> {
+  async update(id: string, data: Partial<User>): Promise<UserDocument> {
     const user = await this.userModel.findByIdAndUpdate(id, data, { new: true }).exec();
     if (!user) throw new NotFoundException('User not found');
     return user;

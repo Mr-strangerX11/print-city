@@ -1,5 +1,5 @@
 import { IsString, IsEnum, IsNumber, IsOptional, IsBoolean, IsDateString, Min, Max, IsInt } from 'class-validator';
-import { CouponType } from '@prisma/client';
+import { CouponType } from '../../common/enums';
 
 export class CreateCouponDto {
   @IsString() code: string;

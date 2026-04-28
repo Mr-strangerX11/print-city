@@ -7,7 +7,8 @@ import { InvoicesService } from './invoices.service';
 import { InvoiceQueryDto } from './dto/invoice-query.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Roles } from '../common/decorators/roles.decorator';
-import { Role, InvoiceStatus } from '@prisma/client';
+import { Role } from '../user/schemas/user.schema';
+import { InvoiceStatus } from '../common/enums';
 
 @Controller('invoices')
 export class InvoicesController {

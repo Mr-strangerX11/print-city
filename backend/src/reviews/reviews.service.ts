@@ -1,6 +1,10 @@
 import { Injectable, BadRequestException, ConflictException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
 import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
-import { PrismaService } from '../prisma/prisma.service';
+import { Review, ReviewDocument } from './schemas/review.schema';
+import { OrderItem, OrderItemDocument } from '../orders/schemas/order-item.schema';
+import { Order, OrderDocument } from '../orders/schemas/order.schema';
 
 export class CreateReviewDto {
   @IsString() productId: string;
@@ -10,42 +14,61 @@ export class CreateReviewDto {
 
 @Injectable()
 export class ReviewsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @InjectModel(Review.name) private reviewModel: Model<ReviewDocument>,
+    @InjectModel(OrderItem.name) private orderItemModel: Model<OrderItemDocument>,
+    @InjectModel(Order.name) private orderModel: Model<OrderDocument>,
+  ) {}
 
   async create(userId: string, dto: CreateReviewDto) {
-    // Verify user actually purchased this product
-    const purchased = await this.prisma.orderItem.findFirst({
-      where: {
-        productId: dto.productId,
-        order: { userId, paymentStatus: 'PAID' },
-      },
-    });
+    const uid = new Types.ObjectId(userId);
+    const pid = new Types.ObjectId(dto.productId);
+
+    // Verify user purchased this product
+    const paidOrders = await this.orderModel
+      .find({ userId: uid, paymentStatus: 'PAID' }, { _id: 1 })
+      .lean()
+      .exec();
+    const paidOrderIds = paidOrders.map((o) => o._id);
+
+    const purchased = await this.orderItemModel
+      .findOne({ productId: pid, orderId: { $in: paidOrderIds } })
+      .lean()
+      .exec();
+
     if (!purchased) {
       throw new BadRequestException('You can only review products you have purchased');
     }
 
-    const existing = await this.prisma.review.findUnique({
-      where: { userId_productId: { userId, productId: dto.productId } },
-    });
+    const existing = await this.reviewModel.findOne({ userId: uid, productId: pid }).exec();
     if (existing) throw new ConflictException('You have already reviewed this product');
 
-    return this.prisma.review.create({
-      data: { userId, productId: dto.productId, rating: dto.rating, comment: dto.comment },
-      include: { user: { select: { name: true, avatar: true } } },
+    const review = await this.reviewModel.create({
+      userId: uid,
+      productId: pid,
+      rating: dto.rating,
+      comment: dto.comment,
     });
+
+    return this.reviewModel.findById(review._id).populate('userId', 'name avatar').lean().exec();
   }
 
   async listForProduct(productId: string) {
-    return this.prisma.review.findMany({
-      where: { productId },
-      orderBy: { createdAt: 'desc' },
-      include: { user: { select: { name: true, avatar: true } } },
-    });
+    return this.reviewModel
+      .find({ productId: new Types.ObjectId(productId) })
+      .sort({ createdAt: -1 })
+      .populate('userId', 'name avatar')
+      .lean()
+      .exec();
   }
 
   async getUserReviewForProduct(userId: string, productId: string) {
-    return this.prisma.review.findUnique({
-      where: { userId_productId: { userId, productId } },
-    });
+    return this.reviewModel
+      .findOne({
+        userId: new Types.ObjectId(userId),
+        productId: new Types.ObjectId(productId),
+      })
+      .lean()
+      .exec();
   }
 }

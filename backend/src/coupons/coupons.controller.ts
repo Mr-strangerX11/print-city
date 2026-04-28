@@ -4,7 +4,7 @@ import { CreateCouponDto, ValidateCouponDto } from './dto/create-coupon.dto';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { Public } from '../common/decorators/public.decorator';
-import { Role } from '@prisma/client';
+import { Role } from '../user/schemas/user.schema';
 
 @Controller('coupons')
 export class CouponsController {

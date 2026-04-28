@@ -1,7 +1,8 @@
 import { Controller, Get, Post, Patch, Param, Body, Query } from '@nestjs/common';
 import { ProductionService } from './production.service';
 import { Roles } from '../common/decorators/roles.decorator';
-import { Role, PrintJobStatus, QCStatus, ShipmentStatus } from '@prisma/client';
+import { Role } from '../user/schemas/user.schema';
+import { PrintJobStatus, QCStatus, ShipmentStatus } from '../common/enums';
 
 @Controller('production')
 @Roles(Role.ADMIN)

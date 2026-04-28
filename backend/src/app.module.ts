@@ -5,6 +5,7 @@ import { APP_GUARD, APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 import { MongooseModule } from '@nestjs/mongoose';
+import { AuditLog, AuditLogSchema } from './common/schemas/audit-log.schema';
 import { MailModule } from './mail/mail.module';
 import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './products/products.module';
@@ -38,7 +39,8 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
-    MongooseModule.forRoot(process.env.DATABASE_URL),
+    MongooseModule.forRoot(process.env.DATABASE_URL as string),
+    MongooseModule.forFeature([{ name: AuditLog.name, schema: AuditLogSchema }]),
     MailModule,
     AuthModule,
     ProductsModule,

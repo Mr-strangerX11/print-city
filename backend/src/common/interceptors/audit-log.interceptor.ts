@@ -1,7 +1,9 @@
 import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
 import { Observable, tap } from 'rxjs';
-import { PrismaService } from '../../prisma/prisma.service';
-import { AuditAction } from '@prisma/client';
+import { AuditAction } from '../enums';
+import { AuditLog, AuditLogDocument } from '../schemas/audit-log.schema';
 import { Request } from 'express';
 
 const METHOD_TO_ACTION: Record<string, AuditAction> = {
@@ -11,7 +13,6 @@ const METHOD_TO_ACTION: Record<string, AuditAction> = {
   DELETE: AuditAction.DELETE,
 };
 
-// Paths that map to specific audit actions
 const PATH_ACTION_OVERRIDES: { pattern: RegExp; action: AuditAction }[] = [
   { pattern: /\/auth\/login/, action: AuditAction.LOGIN },
   { pattern: /\/auth\/logout/, action: AuditAction.LOGOUT },
@@ -21,13 +22,14 @@ const PATH_ACTION_OVERRIDES: { pattern: RegExp; action: AuditAction }[] = [
 
 @Injectable()
 export class AuditLogInterceptor implements NestInterceptor {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @InjectModel(AuditLog.name) private auditLogModel: Model<AuditLogDocument>,
+  ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request: Request = context.switchToHttp().getRequest();
     const method = request.method;
 
-    // Only audit mutating requests
     if (!['POST', 'PATCH', 'PUT', 'DELETE'].includes(method)) {
       return next.handle();
     }
@@ -40,7 +42,6 @@ export class AuditLogInterceptor implements NestInterceptor {
       if (override.pattern.test(url)) { action = override.action; break; }
     }
 
-    // Derive entity name from URL path segments
     const segments = url.replace(/^\/api\//, '').split('/').filter(Boolean);
     const entity = segments[0] ?? 'unknown';
     const entityId = segments[1] && !['status', 'stats', 'me'].includes(segments[1]) ? segments[1] : undefined;
@@ -48,17 +49,15 @@ export class AuditLogInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap({
         next: () => {
-          this.prisma.auditLog.create({
-            data: {
-              userId: user?.id ?? null,
-              action,
-              entity,
-              entityId,
-              newValue: method !== 'DELETE' ? request.body : undefined,
-              ipAddress: request.ip,
-              userAgent: request.headers['user-agent'],
-            },
-          }).catch(() => null); // fire-and-forget, never block the response
+          this.auditLogModel.create({
+            userId: user?.id ? new Types.ObjectId(user.id) : undefined,
+            action,
+            entity,
+            entityId,
+            newValue: method !== 'DELETE' ? request.body : undefined,
+            ipAddress: request.ip,
+            userAgent: request.headers['user-agent'],
+          }).catch(() => null);
         },
       }),
     );
