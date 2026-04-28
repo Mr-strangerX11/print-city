@@ -99,14 +99,32 @@ export default function CheckoutPage() {
       if (data.paymentMethod === 'stripe') {
         const { data: payRes } = await paymentsApi.createCheckout(order.id);
         if (payRes.data?.url) window.location.href = payRes.data.url;
+
       } else if (data.paymentMethod === 'esewa') {
-        toast.info('eSewa integration coming soon. Order placed!');
+        const { data: payRes } = await paymentsApi.initiateEsewa(order.id);
+        const { paymentUrl, formData } = payRes.data;
         await refreshCart();
-        router.push(`/dashboard/orders/${order.id}`);
+
+        // Build a hidden form and POST to eSewa (their API requires form submission, not redirect)
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = paymentUrl;
+        Object.entries(formData as Record<string, string>).forEach(([key, value]) => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = key;
+          input.value = value;
+          form.appendChild(input);
+        });
+        document.body.appendChild(form);
+        form.submit();
+
       } else {
-        toast.info('Khalti integration coming soon. Order placed!');
+        // Khalti
+        const { data: payRes } = await paymentsApi.initiateKhalti(order.id);
+        const { paymentUrl } = payRes.data;
         await refreshCart();
-        router.push(`/dashboard/orders/${order.id}`);
+        window.location.href = paymentUrl;
       }
     } catch (err: any) {
       toast.error(err.response?.data?.message?.error ?? err.response?.data?.message ?? 'Checkout failed');
@@ -191,8 +209,8 @@ export default function CheckoutPage() {
               <div className="space-y-3">
                 {[
                   { value: 'stripe', label: 'Credit / Debit Card', sub: 'Visa, Mastercard, Amex', icon: <CreditCard className="w-5 h-5 text-blue-600" /> },
-                  { value: 'esewa', label: 'eSewa', sub: 'Pay with eSewa wallet (coming soon)', icon: <span className="text-green-600 font-bold text-sm">eSewa</span> },
-                  { value: 'khalti', label: 'Khalti', sub: 'Pay with Khalti wallet (coming soon)', icon: <span className="text-purple-600 font-bold text-sm">Khalti</span> },
+                  { value: 'esewa', label: 'eSewa', sub: 'Pay with eSewa digital wallet', icon: <span className="text-green-600 font-bold text-sm">eSewa</span> },
+                  { value: 'khalti', label: 'Khalti', sub: 'Pay with Khalti digital wallet', icon: <span className="text-purple-600 font-bold text-sm">Khalti</span> },
                 ].map((m) => (
                   <label key={m.value} className={`flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${paymentMethod === m.value ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}>
                     <input type="radio" {...register('paymentMethod')} value={m.value} className="sr-only" />

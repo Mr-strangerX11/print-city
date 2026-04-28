@@ -396,10 +396,12 @@ model CustomDesignOrder {
 model Payment {
   id         String        @id @default(cuid())
   orderId    String        @unique
-  provider   String
+  provider   String        // 'stripe' | 'esewa' | 'khalti'
   amount     Decimal       @db.Decimal(10, 2)
+  currency   String        @default("NPR")
   status     PaymentStatus @default(UNPAID)
-  externalId String?
+  externalId String?       // Stripe session ID / eSewa txn UUID / Khalti pidx
+  refundId   String?
   metadata   Json?
   createdAt  DateTime      @default(now())
   updatedAt  DateTime      @updatedAt
@@ -407,6 +409,7 @@ model Payment {
   order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([externalId])
+  @@index([provider])
 }
 
 model Invoice {
