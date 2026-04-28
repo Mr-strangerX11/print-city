@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+export const dynamic = 'force-dynamic';
+
+import React, { Suspense, useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { invoicesApi } from '@/lib/api';
@@ -12,7 +14,7 @@ import Cookies from 'js-cookie';
 
 const STATUSES: InvoiceStatus[] = ['ISSUED', 'PAID', 'CANCELLED', 'REFUNDED'];
 
-export default function VendorInvoicesPage() {
+function VendorInvoicesContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -190,5 +192,13 @@ export default function VendorInvoicesPage() {
         Your earnings are calculated per item: Sale Price × (100% − Commission Rate). Invoices show after orders are confirmed.
       </p>
     </div>
+  );
+}
+
+export default function VendorInvoicesPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen" />}>
+      <VendorInvoicesContent />
+    </Suspense>
   );
 }

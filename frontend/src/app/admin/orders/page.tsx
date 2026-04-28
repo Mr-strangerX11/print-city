@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+export const dynamic = 'force-dynamic';
+
+import React, { Suspense, useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ordersApi } from '@/lib/api';
@@ -10,7 +12,7 @@ import { StatusBadge } from '@/components/ui/StatusBadge';
 
 const STATUSES: OrderStatus[] = ['PENDING','CONFIRMED','PRINTING','PACKED','SHIPPED','DELIVERED','CANCELLED','REFUNDED'];
 
-export default function AdminOrdersPage() {
+function AdminOrdersContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
@@ -98,5 +100,13 @@ export default function AdminOrdersPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AdminOrdersPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen" />}>
+      <AdminOrdersContent />
+    </Suspense>
   );
 }

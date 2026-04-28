@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+export const dynamic = 'force-dynamic';
+
+import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle, XCircle, DollarSign } from 'lucide-react';
 import { vendorsApi } from '@/lib/api';
@@ -8,7 +10,7 @@ import { formatDate } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
 
-export default function AdminVendorsPage() {
+function AdminVendorsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [vendors, setVendors] = useState<any[]>([]);
@@ -144,5 +146,13 @@ export default function AdminVendorsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AdminVendorsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen" />}>
+      <AdminVendorsContent />
+    </Suspense>
   );
 }

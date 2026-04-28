@@ -85,8 +85,15 @@ export default function CheckoutPage() {
     setCouponCode('');
   };
 
-  if (!user) { router.push('/login'); return null; }
-  if (!cart || cart.items.length === 0) { router.push('/cart'); return null; }
+  useEffect(() => {
+    if (!user) router.push('/login');
+  }, [user, router]);
+
+  useEffect(() => {
+    if (user && (!cart || cart.items.length === 0)) router.push('/cart');
+  }, [user, cart, router]);
+
+  if (!user || !cart || cart.items.length === 0) return null;
 
   const finalTotal = Math.max(0, cart.subtotal - (appliedCoupon?.discountAmount ?? 0));
 

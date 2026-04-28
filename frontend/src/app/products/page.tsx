@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+export const dynamic = 'force-dynamic';
+
+import React, { Suspense, useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Filter, X, ChevronLeft, ChevronRight, SlidersHorizontal } from 'lucide-react';
 import { Navbar } from '@/components/layout/Navbar';
@@ -18,7 +20,7 @@ const SORT_OPTIONS = [
 
 const PAGE_SIZE = 20;
 
-export default function ProductsPage() {
+function ProductsContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
@@ -312,5 +314,13 @@ export default function ProductsPage() {
       </div>
       <Footer />
     </>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen" />}>
+      <ProductsContent />
+    </Suspense>
   );
 }

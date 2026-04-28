@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+export const dynamic = 'force-dynamic';
+
+import React, { Suspense, useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { invoicesApi } from '@/lib/api';
@@ -12,7 +14,7 @@ import Cookies from 'js-cookie';
 
 const STATUSES: InvoiceStatus[] = ['ISSUED', 'PAID', 'CANCELLED', 'REFUNDED'];
 
-export default function CustomerInvoicesPage() {
+function CustomerInvoicesContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -195,5 +197,13 @@ export default function CustomerInvoicesPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CustomerInvoicesPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen" />}>
+      <CustomerInvoicesContent />
+    </Suspense>
   );
 }
