@@ -9,8 +9,9 @@ import express from 'express';
 
 let cachedApp: NestExpressApplication | null = null;
 
-// Use the lambda module (no Bull/Redis) when REDIS_URL is absent (Vercel serverless)
-const ActiveModule = process.env.REDIS_URL ? AppModule : AppLambdaModule;
+// On Vercel serverless, always skip Bull/Redis regardless of REDIS_URL.
+// Bull's persistent TCP connections hang the event loop in a stateless environment.
+const ActiveModule = (process.env.VERCEL || !process.env.REDIS_URL) ? AppLambdaModule : AppModule;
 
 export async function createNestApp(AppModuleClass = ActiveModule): Promise<NestExpressApplication> {
   const expressApp = express();
