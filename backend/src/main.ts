@@ -50,6 +50,11 @@ export async function createNestApp(AppModuleClass = ActiveModule): Promise<Nest
     }),
   );
 
+  // Health check endpoint (simple, no DB dependency)
+  app.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  });
+
   const swaggerConfig = new DocumentBuilder()
     .setTitle('AP API')
     .setDescription('AP — Custom Print Marketplace API')
