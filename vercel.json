@@ -1,17 +1,16 @@
 {
   "version": 2,
   "installCommand": "pnpm install",
-  "buildCommand": "cd backend && pnpm build",
   "builds": [
     {
-      "src": "backend/dist/src/lambda.js",
+      "src": "backend/src/lambda.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "backend/dist/src/lambda.js"
+      "dest": "backend/src/lambda.ts"
     }
   ]
 }

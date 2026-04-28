@@ -214,11 +214,11 @@ export class AuthService {
     const accessToken = this.jwt.sign(payload, {
       secret: this.config.get('JWT_ACCESS_SECRET'),
       expiresIn: this.config.get('JWT_ACCESS_EXPIRES', '15m'),
-    });
+    } as any);
     const refreshToken = this.jwt.sign(payload, {
       secret: this.config.get('JWT_REFRESH_SECRET'),
       expiresIn: this.config.get('JWT_REFRESH_EXPIRES', '7d'),
-    });
+    } as any);
     return { accessToken, refreshToken, role };
   }
 }
