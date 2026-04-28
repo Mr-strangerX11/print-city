@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "installCommand": "pnpm install && pnpm --filter @ap/api exec prisma generate",
+  "installCommand": "pnpm install",
   "builds": [
     {
       "src": "backend/src/lambda.ts",
