@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { DashboardShell } from '@/components/layout/DashboardShell';
-import { LayoutDashboard, ShoppingBag, Users, Package, Paintbrush, CreditCard, Upload, Store, FileText, Printer, Truck, Tag, MessageSquare, BarChart2 } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Users, Package, Paintbrush, CreditCard, Upload, Store, FileText, Printer, Truck, Tag, MessageSquare, BarChart2, Layers } from 'lucide-react';
 
 const NAV = [
   { label: 'Dashboard', href: '/admin', icon: <LayoutDashboard className="w-4 h-4" /> },
@@ -17,6 +17,7 @@ const NAV = [
   { label: 'Reports', href: '/admin/reports', icon: <BarChart2 className="w-4 h-4" /> },
   { label: 'Custom Orders', href: '/admin/custom-orders', icon: <Paintbrush className="w-4 h-4" /> },
   { label: 'Products', href: '/admin/products', icon: <Package className="w-4 h-4" /> },
+  { label: 'Categories', href: '/admin/categories', icon: <Layers className="w-4 h-4" /> },
   { label: 'Vendors', href: '/admin/vendors', icon: <Store className="w-4 h-4" /> },
   { label: 'Users', href: '/admin/users', icon: <Users className="w-4 h-4" /> },
   { label: 'Payouts', href: '/admin/payouts', icon: <CreditCard className="w-4 h-4" /> },
