@@ -8,7 +8,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { IsEnum } from 'class-validator';
 import { OrderStatus, PaymentStatus } from '../common/enums';
-import { Role } from '../user/schemas/user.schema';
+import { Role, User, UserDocument } from '../user/schemas/user.schema';
 import { CartService } from '../cart/cart.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { MailService } from '../mail/mail.service';
@@ -47,6 +47,7 @@ export class OrdersService {
     @InjectModel(ProductVariant.name) private variantModel: Model<ProductVariantDocument>,
     @InjectModel(ProductImage.name) private imageModel: Model<ProductImageDocument>,
     @InjectModel(Payment.name) private paymentModel: Model<PaymentDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
     private cartService: CartService,
     private notifications: NotificationsService,
     private mail: MailService,
@@ -119,8 +120,69 @@ export class OrdersService {
       `Your order #${order._id.toString().slice(-8).toUpperCase()} has been placed.`,
     );
 
+    this.sendOrderEmails(userId, order.toObject(), cart.items, orderItemsData).catch(() => null);
+
     const orderItems = await this.orderItemModel.find({ orderId: order._id }).lean().exec();
     return { ...order.toObject(), items: orderItems };
+  }
+
+  private async sendOrderEmails(userId: string, order: any, cartItems: any[], itemsData: any[]) {
+    const enrichedItems = await Promise.all(
+      cartItems.map(async (cartItem, i) => {
+        const data = itemsData[i];
+        const vendor = await this.vendorModel
+          .findById(cartItem.variant?.product?.vendorId)
+          .lean()
+          .exec();
+        return {
+          productTitle: cartItem.variant?.product?.title ?? 'Product',
+          variantLabel: [cartItem.variant?.size, cartItem.variant?.color].filter(Boolean).join(' · '),
+          storeName: vendor?.storeName ?? '—',
+          vendorId: data.vendorId.toString(),
+          vendorUserId: vendor?.userId?.toString(),
+          qty: cartItem.qty,
+          price: data.price,
+          vendorCommission: data.vendorCommission,
+          adminAmount: data.adminAmount,
+        };
+      }),
+    );
+
+    const customer = await this.userModel.findById(userId).lean().exec();
+
+    if (customer?.email) {
+      this.mail.sendCustomerOrderConfirmation(customer.email, customer.name, order, enrichedItems).catch(() => null);
+    }
+
+    const admins = await this.userModel.find({ role: Role.ADMIN, isActive: true }).lean().exec();
+    for (const admin of admins) {
+      if (admin.email) {
+        this.mail.sendAdminOrderNotification(admin.email, order, customer ?? {}, enrichedItems).catch(() => null);
+      }
+    }
+
+    const vendorGroups = new Map<string, { items: typeof enrichedItems; vendorUserId?: string; storeName: string }>();
+    for (const item of enrichedItems) {
+      if (!vendorGroups.has(item.vendorId)) {
+        vendorGroups.set(item.vendorId, { items: [], vendorUserId: item.vendorUserId, storeName: item.storeName });
+      }
+      vendorGroups.get(item.vendorId)!.items.push(item);
+    }
+
+    for (const [, group] of vendorGroups) {
+      if (!group.vendorUserId) continue;
+      const vendorUser = await this.userModel.findById(group.vendorUserId).lean().exec();
+      if (vendorUser?.email) {
+        const totalCommission = group.items.reduce((s, i) => s + i.vendorCommission, 0);
+        this.mail.sendVendorOrderNotification(
+          vendorUser.email,
+          group.storeName,
+          order._id.toString(),
+          group.items,
+          totalCommission,
+        ).catch(() => null);
+      }
+    }
   }
 
   async getStats() {

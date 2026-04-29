@@ -12,6 +12,7 @@ import { ProductVariant, ProductVariantSchema } from '../products/schemas/produc
 import { Product, ProductSchema } from '../products/schemas/product.schema';
 import { ProductImage, ProductImageSchema } from '../products/schemas/product-image.schema';
 import { Payment, PaymentSchema } from '../payments/schemas/payment.schema';
+import { User, UserSchema } from '../user/schemas/user.schema';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { Payment, PaymentSchema } from '../payments/schemas/payment.schema';
       { name: Product.name, schema: ProductSchema },
       { name: ProductImage.name, schema: ProductImageSchema },
       { name: Payment.name, schema: PaymentSchema },
+      { name: User.name, schema: UserSchema },
     ]),
     CartModule,
     NotificationsModule,
