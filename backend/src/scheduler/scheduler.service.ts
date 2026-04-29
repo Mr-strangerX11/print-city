@@ -43,7 +43,7 @@ export class SchedulerService {
         const user = await this.userModel
           .findById(cart.userId, { name: 1, email: 1 })
           .lean()
-          .exec();
+          .exec() as any;
         if (!user?.email) continue;
 
         // Build item summaries for email
