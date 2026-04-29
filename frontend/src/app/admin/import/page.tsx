@@ -5,6 +5,7 @@ import { useDropzone } from 'react-dropzone';
 import { Upload, CheckCircle, XCircle, FileText, Loader2, Download } from 'lucide-react';
 import { productsApi } from '@/lib/api';
 import { toast } from 'sonner';
+import { getErrorMsg } from '@/lib/utils';
 
 const CSV_TEMPLATE = `title,description,basePrice,category,imageUrl,tags
 Minimal Wave Tee,A clean wave design on premium cotton,799,T-Shirts,https://example.com/image.jpg,minimal|wave|tee
@@ -36,7 +37,7 @@ export default function AdminImportPage() {
       if (data.data.created > 0) toast.success(`${data.data.created} products imported`);
       if (data.data.errors?.length > 0) toast.warning(`${data.data.errors.length} rows had errors`);
     } catch (err: any) {
-      toast.error(err.response?.data?.message?.error ?? 'Import failed');
+      toast.error(getErrorMsg(err, 'Import failed'));
     } finally {
       setImporting(false);
     }

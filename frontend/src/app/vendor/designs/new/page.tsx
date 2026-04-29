@@ -10,6 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { productsApi, categoriesApi, uploadsApi } from '@/lib/api';
 import { Category } from '@/types';
 import { toast } from 'sonner';
+import { getErrorMsg } from '@/lib/utils';
 
 const schema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),
@@ -79,7 +80,7 @@ export default function NewDesignPage() {
       toast.success('Design submitted for review!');
       router.push('/vendor/designs');
     } catch (err: any) {
-      toast.error(err.response?.data?.message?.error ?? 'Failed to create product');
+      toast.error(getErrorMsg(err, 'Failed to create product'));
     }
   };
 

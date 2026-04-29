@@ -12,7 +12,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { ordersApi, paymentsApi, addressesApi, couponsApi } from '@/lib/api';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, getErrorMsg } from '@/lib/utils';
 import { toast } from 'sonner';
 
 const schema = z.object({
@@ -136,7 +136,7 @@ export default function CheckoutPage() {
         window.location.href = paymentUrl;
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message?.error ?? err.response?.data?.message ?? 'Checkout failed');
+      toast.error(getErrorMsg(err, 'Checkout failed'));
     }
   };
 

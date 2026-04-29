@@ -82,8 +82,8 @@ export function getOrderStepIndex(status: string) {
 
 export function getErrorMsg(err: any, fallback = 'Something went wrong'): string {
   const raw = err?.response?.data?.message;
-  const msg = typeof raw === 'string'
-    ? raw
-    : raw?.message ?? raw?.error ?? raw?.[0]?.message;
-  return String(msg ?? err?.response?.data?.error ?? err?.message ?? fallback);
+  if (typeof raw === 'string') return raw;
+  if (Array.isArray(raw) && raw.length > 0) return String(raw[0]);
+  if (raw && typeof raw === 'object') return String(raw.message ?? raw.error ?? fallback);
+  return String(err?.response?.data?.error ?? err?.message ?? fallback);
 }

@@ -8,7 +8,7 @@ import { Trash2, Minus, Plus, ShoppingBag, ArrowRight, Tag, Truck, Clock, Shield
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { useCart } from '@/context/CartContext';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, getErrorMsg } from '@/lib/utils';
 import { toast } from 'sonner';
 
 const DELIVERY_DATE = (() => {
@@ -27,7 +27,7 @@ export default function CartPage() {
 
   const handleUpdate = async (itemId: string, qty: number) => {
     try { await updateItem(itemId, qty); }
-    catch (err: any) { toast.error(err.response?.data?.message?.error ?? 'Failed to update'); }
+    catch (err: any) { toast.error(getErrorMsg(err, 'Failed to update')); }
   };
 
   const handleRemove = async (itemId: string) => {

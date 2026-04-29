@@ -9,6 +9,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { ProductCard } from '@/components/ui/ProductCard';
 import { productsApi } from '@/lib/api';
+import { getErrorMsg } from '@/lib/utils';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useWishlist } from '@/context/WishlistContext';
@@ -120,7 +121,7 @@ export default function ProductDetailPage() {
       await addItem(selectedVariant.id, qty);
       toast.success('Added to cart!');
     } catch (err: any) {
-      toast.error(err.response?.data?.message?.error ?? 'Failed to add to cart');
+      toast.error(getErrorMsg(err, 'Failed to add to cart'));
     } finally {
       setAddingToCart(false);
     }

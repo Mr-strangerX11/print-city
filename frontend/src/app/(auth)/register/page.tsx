@@ -11,6 +11,7 @@ import { authApi } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { Navbar } from '@/components/layout/Navbar';
 import { toast } from 'sonner';
+import { getErrorMsg } from '@/lib/utils';
 
 const schema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -47,7 +48,7 @@ export default function RegisterPage() {
       toast.success('Account created! Check your email for the verification code.');
       router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
     } catch (err: any) {
-      toast.error(err.response?.data?.message ?? 'Registration failed');
+      toast.error(getErrorMsg(err, 'Registration failed'));
     }
   };
 

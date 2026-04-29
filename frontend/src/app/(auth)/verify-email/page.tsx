@@ -8,6 +8,7 @@ import { authApi } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { Navbar } from '@/components/layout/Navbar';
 import { toast } from 'sonner';
+import { getErrorMsg } from '@/lib/utils';
 import Cookies from 'js-cookie';
 
 function VerifyEmailContent() {
@@ -65,7 +66,7 @@ function VerifyEmailContent() {
       toast.success('Email verified! Welcome to Print City.');
       router.push('/dashboard');
     } catch (err: any) {
-      toast.error(err.response?.data?.message ?? 'Invalid or expired OTP');
+      toast.error(getErrorMsg(err, 'Invalid or expired OTP'));
     } finally {
       setLoading(false);
     }
@@ -80,7 +81,7 @@ function VerifyEmailContent() {
       inputRefs.current[0]?.focus();
       toast.success('New code sent to your email');
     } catch (err: any) {
-      toast.error(err.response?.data?.message ?? 'Failed to resend OTP');
+      toast.error(getErrorMsg(err, 'Failed to resend OTP'));
     } finally {
       setResending(false);
     }

@@ -11,6 +11,7 @@ import { authApi } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
 import { Navbar } from '@/components/layout/Navbar';
 import { toast } from 'sonner';
+import { getErrorMsg } from '@/lib/utils';
 
 const schema = z.object({
   email: z.string().email('Invalid email'),
@@ -36,7 +37,7 @@ export default function LoginPage() {
       else if (role === 'VENDOR') router.push('/vendor/dashboard');
       else router.push('/dashboard');
     } catch (err: any) {
-      toast.error(err.response?.data?.message?.error ?? 'Invalid credentials');
+      toast.error(getErrorMsg(err, 'Invalid credentials'));
     }
   };
 
