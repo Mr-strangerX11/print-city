@@ -50,7 +50,7 @@ export class AuthService {
       verificationOtpExpiry: otpExpiry,
     } as any);
 
-    this.mail.sendVerificationOtp(user.email, user.name, otp).catch(() => {});
+    await this.mail.sendVerificationOtp(user.email, user.name, otp);
 
     return { requiresVerification: true, email: user.email };
   }
@@ -175,7 +175,7 @@ export class AuthService {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
     await this.users.update(user.id, { verificationOtp: otp, verificationOtpExpiry: otpExpiry } as any);
-    this.mail.sendVerificationOtp(user.email, user.name, otp).catch(() => {});
+    await this.mail.sendVerificationOtp(user.email, user.name, otp);
     return { message: 'OTP resent successfully' };
   }
 
