@@ -13,6 +13,8 @@ import { LoginDto } from './dto/login.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import * as bcrypt from 'bcryptjs';
 import { Role } from '../user/schemas/user.schema';
+import { MailService } from '../mail/mail.service';
+import { VendorsService } from '../vendors/vendors.service';
 import slugify from 'slugify';
 
 @Injectable()
@@ -21,6 +23,8 @@ export class AuthService {
     private users: UserService,
     private jwt: JwtService,
     private config: ConfigService,
+    private mail: MailService,
+    private vendors: VendorsService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -32,17 +36,23 @@ export class AuthService {
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 12);
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
     const user = await this.users.create({
       name: dto.name,
       email: dto.email,
       passwordHash,
       phone: dto.phone,
       role: dto.role ?? Role.CUSTOMER,
-    });
+      isVerified: false,
+      verificationOtp: otp,
+      verificationOtpExpiry: otpExpiry,
+    } as any);
 
-    // Vendor creation logic should be refactored to use a Mongoose-based VendorService
+    this.mail.sendVerificationOtp(user.email, user.name, otp).catch(() => {});
 
-    return this.generateTokens(user.id, user.email, user.role);
+    return { requiresVerification: true, email: user.email };
   }
 
   async login(dto: LoginDto) {
@@ -52,6 +62,10 @@ export class AuthService {
 
     const valid = await bcrypt.compare(dto.password, user.passwordHash);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
+
+    if (!user.isVerified) {
+      throw new UnauthorizedException('Please verify your email before logging in. Check your inbox for the OTP.');
+    }
 
     return this.generateTokens(user.id, user.email, user.role);
   }
@@ -136,6 +150,48 @@ export class AuthService {
     }
 
     return this.generateTokens(user.id, user.email, user.role);
+  }
+
+  async verifyOtp(email: string, otp: string) {
+    const user = await this.users.findByEmail(email);
+    if (!user) throw new NotFoundException('User not found');
+    if (user.isVerified) throw new BadRequestException('Account already verified');
+    if (!user.verificationOtp || user.verificationOtp !== otp) throw new BadRequestException('Invalid OTP');
+    if (user.verificationOtpExpiry && user.verificationOtpExpiry < new Date()) {
+      throw new BadRequestException('OTP has expired. Please request a new one.');
+    }
+    await this.users.update(user.id, {
+      isVerified: true,
+      verificationOtp: undefined,
+      verificationOtpExpiry: undefined,
+    } as any);
+    return this.generateTokens(user.id, user.email, user.role);
+  }
+
+  async resendOtp(email: string) {
+    const user = await this.users.findByEmail(email);
+    if (!user) throw new NotFoundException('User not found');
+    if (user.isVerified) throw new BadRequestException('Account already verified');
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+    await this.users.update(user.id, { verificationOtp: otp, verificationOtpExpiry: otpExpiry } as any);
+    this.mail.sendVerificationOtp(user.email, user.name, otp).catch(() => {});
+    return { message: 'OTP resent successfully' };
+  }
+
+  async createVendorByAdmin(dto: { name: string; email: string; password: string; storeName: string }) {
+    const existing = await this.users.findByEmail(dto.email);
+    if (existing) throw new ConflictException('Email already registered');
+    const passwordHash = await bcrypt.hash(dto.password, 12);
+    const user = await this.users.create({
+      name: dto.name,
+      email: dto.email,
+      passwordHash,
+      role: Role.VENDOR,
+      isVerified: true,
+    } as any);
+    await this.vendors.createVendor(user.id, dto.storeName);
+    return { message: 'Vendor created successfully', userId: user.id };
   }
 
   private generateTokens(userId: string, email: string, role: string) {

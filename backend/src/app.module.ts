@@ -28,6 +28,7 @@ import { SupportModule } from './support/support.module';
 import { QueuesModule } from './queues/queues.module';
 import { DesignsModule } from './designs/designs.module';
 import { PrintSecureModule } from './print-secure/print-secure.module';
+import { SchedulerModule } from './scheduler/scheduler.module';
 
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { RolesGuard } from './common/guards/roles.guard';
@@ -61,6 +62,7 @@ import { AuditLogInterceptor } from './common/interceptors/audit-log.interceptor
     ProductionModule,
     SupportModule,
     QueuesModule,
+    SchedulerModule,
     UserModule,
     DesignsModule,
     PrintSecureModule,

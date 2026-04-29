@@ -67,6 +67,10 @@ export const authApi = {
   login: (data: any) => api.post('/auth/login', data),
   me: () => api.get('/auth/me'),
   updateProfile: (data: any) => api.patch('/auth/me', data),
+  verifyOtp: (email: string, otp: string) => api.post('/auth/verify-otp', { email, otp }),
+  resendOtp: (email: string) => api.post('/auth/resend-otp', { email }),
+  createVendor: (data: { name: string; email: string; password: string; storeName: string }) =>
+    api.post('/auth/create-vendor', data),
 };
 
 // ─── Products ─────────────────────────────────────────────────────────────────

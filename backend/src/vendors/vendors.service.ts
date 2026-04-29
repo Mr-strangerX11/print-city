@@ -4,6 +4,7 @@ import { Model, Types } from 'mongoose';
 import { Vendor, VendorDocument } from './schemas/vendor.schema';
 import { Product, ProductDocument } from '../products/schemas/product.schema';
 import { VendorStatus } from '../common/enums';
+import slugify from 'slugify';
 
 @Injectable()
 export class VendorsService {
@@ -89,5 +90,15 @@ export class VendorsService {
     const vendor = await this.vendorModel.findOne({ userId: new Types.ObjectId(userId) }).exec();
     if (!vendor) throw new NotFoundException();
     return this.vendorModel.findByIdAndUpdate(vendor._id, dto, { new: true }).exec();
+  }
+
+  async createVendor(userId: string, storeName: string) {
+    const storeSlug = slugify(storeName, { lower: true, strict: true });
+    return this.vendorModel.create({
+      userId: new Types.ObjectId(userId),
+      storeName,
+      storeSlug,
+      status: VendorStatus.ACTIVE,
+    });
   }
 }

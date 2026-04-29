@@ -16,6 +16,9 @@ import { ProductVariant, ProductVariantDocument } from './schemas/product-varian
 import { ProductImage, ProductImageDocument } from './schemas/product-image.schema';
 import { Vendor, VendorDocument } from '../vendors/schemas/vendor.schema';
 import { Category, CategoryDocument } from '../categories/schemas/category.schema';
+import { WishlistItem, WishlistItemDocument } from '../wishlist/schemas/wishlist-item.schema';
+import { User, UserDocument } from '../user/schemas/user.schema';
+import { MailService } from '../mail/mail.service';
 
 interface QueryParams {
   page?: number;
@@ -36,6 +39,9 @@ export class ProductsService {
     @InjectModel(ProductImage.name) private imageModel: Model<ProductImageDocument>,
     @InjectModel(Vendor.name) private vendorModel: Model<VendorDocument>,
     @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
+    @InjectModel(WishlistItem.name) private wishlistItemModel: Model<WishlistItemDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    private mail: MailService,
   ) {}
 
   async findAll(query: QueryParams, userId?: string, userRole?: Role): Promise<any> {
@@ -156,6 +162,7 @@ export class ProductsService {
       if (!vendor || vendor.userId.toString() !== userId) throw new ForbiddenException();
     }
 
+    const oldPrice = product.basePrice;
     const updateData: any = {};
     if (dto.title) updateData.title = dto.title;
     if (dto.description !== undefined) updateData.description = dto.description;
@@ -165,6 +172,11 @@ export class ProductsService {
     if (dto.tags) updateData.tags = dto.tags;
 
     const updated = await this.productModel.findByIdAndUpdate(id, updateData, { new: true }).lean().exec();
+
+    // Notify wishlist users of price drop (fire-and-forget)
+    if (dto.basePrice && dto.basePrice < oldPrice) {
+      this.notifyWishlistPriceDrop(id, product.title, oldPrice, dto.basePrice, product.slug).catch(() => {});
+    }
     const [variants, images] = await Promise.all([
       this.variantModel.find({ productId: new Types.ObjectId(id) }).lean().exec(),
       this.imageModel.find({ productId: new Types.ObjectId(id) }).lean().exec(),
@@ -223,6 +235,16 @@ export class ProductsService {
     }
 
     return { created, errors };
+  }
+
+  private async notifyWishlistPriceDrop(productId: string, title: string, oldPrice: number, newPrice: number, slug: string) {
+    const items = await this.wishlistItemModel.find({ productId: new Types.ObjectId(productId) }).lean().exec();
+    if (!items.length) return;
+    const userIds = items.map((i) => i.userId);
+    const users = await this.userModel.find({ _id: { $in: userIds } }, { name: 1, email: 1 }).lean().exec();
+    await Promise.all(
+      users.map((u) => this.mail.sendWishlistPriceAlert(u.email, u.name, [{ title, oldPrice, newPrice, slug }])),
+    );
   }
 
   private async generateUniqueSlug(title: string): Promise<string> {

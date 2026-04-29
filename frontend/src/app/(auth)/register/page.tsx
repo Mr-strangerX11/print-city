@@ -27,7 +27,7 @@ type FormData = z.infer<typeof schema>;
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  useAuth();
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -37,19 +37,17 @@ export default function RegisterPage() {
 
   const onSubmit = async (data: FormData) => {
     try {
-      const res = await authApi.register({
+      await authApi.register({
         name: data.name,
         email: data.email,
         phone: data.phone,
         password: data.password,
         role: 'CUSTOMER',
       });
-      const { accessToken, refreshToken } = res.data.data;
-      await login(accessToken, refreshToken);
-      toast.success('Account created!');
-      router.push('/dashboard');
+      toast.success('Account created! Check your email for the verification code.');
+      router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
     } catch (err: any) {
-      toast.error(err.response?.data?.message?.error ?? 'Registration failed');
+      toast.error(err.response?.data?.message ?? 'Registration failed');
     }
   };
 

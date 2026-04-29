@@ -61,6 +61,26 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { ttl: 60000, limit: 10 } })
+  @Post('verify-otp')
+  verifyOtp(@Body('email') email: string, @Body('otp') otp: string) {
+    return this.authService.verifyOtp(email, otp);
+  }
+
+  @Public()
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
+  @Post('resend-otp')
+  resendOtp(@Body('email') email: string) {
+    return this.authService.resendOtp(email);
+  }
+
+  @Roles(Role.ADMIN)
+  @Post('create-vendor')
+  createVendor(@Body() dto: { name: string; email: string; password: string; storeName: string }) {
+    return this.authService.createVendorByAdmin(dto);
+  }
+
+  @Public()
   @Get('google')
   @UseGuards(AuthGuard('google'))
   googleLogin() {}

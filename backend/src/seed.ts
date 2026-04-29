@@ -17,6 +17,7 @@ const UserSchema = new mongoose.Schema(
     phone: String,
     googleId: String,
     isActive: { type: Boolean, default: true },
+    isVerified: { type: Boolean, default: false },
   },
   { timestamps: true },
 );
@@ -90,12 +91,17 @@ const ProductVariantModel = mongoose.model('ProductVariant', ProductVariantSchem
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
 async function upsertUser(data: {
-  email: string; name: string; passwordHash: string; role: string;
+  email: string; name: string; passwordHash: string; role: string; isVerified?: boolean;
 }) {
-  return UserModel.findOneAndUpdate(
+  await UserModel.findOneAndUpdate(
     { email: data.email },
     { $setOnInsert: data },
     { upsert: true, new: true },
+  );
+  return UserModel.findOneAndUpdate(
+    { email: data.email },
+    { $set: { isVerified: true } },
+    { new: true },
   );
 }
 
@@ -120,18 +126,18 @@ async function main() {
   const vendorHash = await bcrypt.hash('Vendor@123', 12);
   const customerHash = await bcrypt.hash('Customer@123', 12);
 
-  const admin = await upsertUser({ email: 'admin@ap.com', name: 'AP Admin', passwordHash: adminHash, role: 'ADMIN' });
-  const vendor1User = await upsertUser({ email: 'vendor1@ap.com', name: 'Alex Design Studio', passwordHash: vendorHash, role: 'VENDOR' });
-  const vendor2User = await upsertUser({ email: 'vendor2@ap.com', name: 'PrintPop Creative', passwordHash: vendorHash, role: 'VENDOR' });
-  await upsertUser({ email: 'customer@ap.com', name: 'Jane Customer', passwordHash: customerHash, role: 'CUSTOMER' });
+  const admin = await upsertUser({ email: 'admin@ap.com', name: 'AP Admin', passwordHash: adminHash, role: 'ADMIN', isVerified: true });
+  const vendor1User = await upsertUser({ email: 'vendor1@ap.com', name: 'Alex Design Studio', passwordHash: vendorHash, role: 'VENDOR', isVerified: true });
+  const vendor2User = await upsertUser({ email: 'vendor2@ap.com', name: 'PrintPop Creative', passwordHash: vendorHash, role: 'VENDOR', isVerified: true });
+  await upsertUser({ email: 'customer@ap.com', name: 'Jane Customer', passwordHash: customerHash, role: 'CUSTOMER', isVerified: true });
   console.log('✅ Users created');
 
   // ── Vendors ────────────────────────────────────────────────────────────
   const vendor1 = await VendorModel.findOneAndUpdate(
-    { userId: vendor1User._id },
+    { userId: vendor1User!._id },
     {
       $setOnInsert: {
-        userId: vendor1User._id,
+        userId: vendor1User!._id,
         storeName: 'Alex Design Studio',
         storeSlug: 'alex-design-studio',
         description: 'Premium custom apparel designs. Minimalist and modern aesthetic.',
@@ -143,10 +149,10 @@ async function main() {
   );
 
   const vendor2 = await VendorModel.findOneAndUpdate(
-    { userId: vendor2User._id },
+    { userId: vendor2User!._id },
     {
       $setOnInsert: {
-        userId: vendor2User._id,
+        userId: vendor2User!._id,
         storeName: 'PrintPop Creative',
         storeSlug: 'printpop-creative',
         description: 'Bold, vibrant designs for every personality.',

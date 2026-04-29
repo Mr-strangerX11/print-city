@@ -142,6 +142,99 @@ export class MailService {
     await this.send(to, `Invoice ${invoice.invoiceNumber} — Print City`, html);
   }
 
+  async sendVerificationOtp(to: string, name: string, otp: string) {
+    const html = `
+    <div style="max-width:480px;margin:40px auto;font-family:'Helvetica Neue',Arial,sans-serif;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+      <div style="background:linear-gradient(135deg,#7C3AED,#2563EB);padding:32px 40px;">
+        <div style="font-size:22px;font-weight:900;color:#fff;">Print City</div>
+        <div style="margin-top:12px;font-size:20px;font-weight:700;color:#fff;">Verify your email</div>
+      </div>
+      <div style="padding:32px 40px;">
+        <p style="color:#374151;font-size:15px;">Hi <strong>${name}</strong>,</p>
+        <p style="color:#6B7280;font-size:14px;">Use the OTP below to verify your account. It expires in <strong>10 minutes</strong>.</p>
+        <div style="margin:24px 0;text-align:center;">
+          <div style="display:inline-block;background:#F5F3FF;border:2px dashed #7C3AED;border-radius:12px;padding:18px 40px;">
+            <span style="font-size:36px;font-weight:900;letter-spacing:10px;color:#7C3AED;">${otp}</span>
+          </div>
+        </div>
+        <p style="color:#9CA3AF;font-size:12px;text-align:center;">If you didn't create an account, you can safely ignore this email.</p>
+      </div>
+      <div style="background:#F9FAFB;border-top:1px solid #E5E7EB;padding:16px 40px;text-align:center;">
+        <p style="font-size:11px;color:#9CA3AF;margin:0;">© ${new Date().getFullYear()} Print City · Kathmandu, Nepal</p>
+      </div>
+    </div>`;
+    await this.send(to, 'Your Print City verification code', html);
+  }
+
+  async sendWishlistPriceAlert(to: string, name: string, items: { title: string; oldPrice: number; newPrice: number; slug: string }[]) {
+    const frontendUrl = this.config.get('FRONTEND_URL', 'http://localhost:3000').split(',')[0].trim();
+    const fmt = (n: number) => `Rs. ${n.toLocaleString('en-NP', { minimumFractionDigits: 0 })}`;
+    const rows = items.map(item => `
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #F3F4F6;">
+        <div>
+          <a href="${frontendUrl}/products/${item.slug}" style="font-size:14px;font-weight:700;color:#111827;text-decoration:none;">${item.title}</a>
+        </div>
+        <div style="text-align:right;flex-shrink:0;margin-left:16px;">
+          <span style="font-size:12px;color:#9CA3AF;text-decoration:line-through;">${fmt(item.oldPrice)}</span>
+          <span style="margin-left:6px;font-size:15px;font-weight:900;color:#059669;">${fmt(item.newPrice)}</span>
+        </div>
+      </div>`).join('');
+
+    const html = `
+    <div style="max-width:520px;margin:40px auto;font-family:'Helvetica Neue',Arial,sans-serif;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+      <div style="background:linear-gradient(135deg,#059669,#0D9488);padding:28px 36px;">
+        <div style="font-size:22px;font-weight:900;color:#fff;">Print City</div>
+        <div style="margin-top:10px;font-size:20px;font-weight:700;color:#fff;">🎉 Wishlist price drop!</div>
+      </div>
+      <div style="padding:28px 36px;">
+        <p style="color:#374151;font-size:15px;">Hi <strong>${name}</strong>,</p>
+        <p style="color:#6B7280;font-size:14px;">Good news! Items in your wishlist just got cheaper:</p>
+        <div style="margin:20px 0;">${rows}</div>
+        <div style="text-align:center;margin-top:24px;">
+          <a href="${frontendUrl}/wishlist" style="display:inline-block;background:linear-gradient(135deg,#7C3AED,#2563EB);color:#fff;padding:12px 28px;border-radius:10px;font-weight:700;font-size:14px;text-decoration:none;">View Wishlist</a>
+        </div>
+      </div>
+      <div style="background:#F9FAFB;border-top:1px solid #E5E7EB;padding:14px 36px;text-align:center;">
+        <p style="font-size:11px;color:#9CA3AF;margin:0;">© ${new Date().getFullYear()} Print City · Kathmandu, Nepal</p>
+      </div>
+    </div>`;
+    await this.send(to, '🎉 Price drop on your wishlist — Print City', html);
+  }
+
+  async sendAbandonedCartEmail(to: string, name: string, items: { title: string; price: number; qty: number; imageUrl?: string }[]) {
+    const frontendUrl = this.config.get('FRONTEND_URL', 'http://localhost:3000').split(',')[0].trim();
+    const fmt = (n: number) => `Rs. ${n.toLocaleString('en-NP', { minimumFractionDigits: 0 })}`;
+    const rows = items.slice(0, 3).map(item => `
+      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #F3F4F6;">
+        ${item.imageUrl ? `<img src="${item.imageUrl}" width="48" height="48" style="border-radius:8px;object-fit:cover;flex-shrink:0;" />` : ''}
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;color:#111827;">${item.title}</div>
+          <div style="font-size:12px;color:#6B7280;">Qty: ${item.qty} · ${fmt(item.price)}</div>
+        </div>
+      </div>`).join('');
+
+    const html = `
+    <div style="max-width:520px;margin:40px auto;font-family:'Helvetica Neue',Arial,sans-serif;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+      <div style="background:linear-gradient(135deg,#7C3AED,#2563EB);padding:28px 36px;">
+        <div style="font-size:22px;font-weight:900;color:#fff;">Print City</div>
+        <div style="margin-top:10px;font-size:20px;font-weight:700;color:#fff;">You left something behind 🛒</div>
+      </div>
+      <div style="padding:28px 36px;">
+        <p style="color:#374151;font-size:15px;">Hi <strong>${name}</strong>,</p>
+        <p style="color:#6B7280;font-size:14px;">You have items waiting in your cart. Complete your order before they sell out!</p>
+        <div style="margin:20px 0;">${rows}</div>
+        <div style="text-align:center;margin-top:24px;">
+          <a href="${frontendUrl}/cart" style="display:inline-block;background:linear-gradient(135deg,#7C3AED,#2563EB);color:#fff;padding:12px 28px;border-radius:10px;font-weight:700;font-size:14px;text-decoration:none;">Complete My Order</a>
+        </div>
+        <p style="font-size:12px;color:#9CA3AF;text-align:center;margin-top:20px;">Don't want reminders? You can always clear your cart.</p>
+      </div>
+      <div style="background:#F9FAFB;border-top:1px solid #E5E7EB;padding:14px 36px;text-align:center;">
+        <p style="font-size:11px;color:#9CA3AF;margin:0;">© ${new Date().getFullYear()} Print City · Kathmandu, Nepal</p>
+      </div>
+    </div>`;
+    await this.send(to, 'You left items in your cart — Print City', html);
+  }
+
   private async send(to: string, subject: string, html: string) {
     try {
       await this.transporter.sendMail({

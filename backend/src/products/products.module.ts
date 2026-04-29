@@ -7,6 +7,9 @@ import { ProductVariant, ProductVariantSchema } from './schemas/product-variant.
 import { ProductImage, ProductImageSchema } from './schemas/product-image.schema';
 import { Vendor, VendorSchema } from '../vendors/schemas/vendor.schema';
 import { Category, CategorySchema } from '../categories/schemas/category.schema';
+import { WishlistItem, WishlistItemSchema } from '../wishlist/schemas/wishlist-item.schema';
+import { User, UserSchema } from '../user/schemas/user.schema';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
@@ -16,7 +19,10 @@ import { Category, CategorySchema } from '../categories/schemas/category.schema'
       { name: ProductImage.name, schema: ProductImageSchema },
       { name: Vendor.name, schema: VendorSchema },
       { name: Category.name, schema: CategorySchema },
+      { name: WishlistItem.name, schema: WishlistItemSchema },
+      { name: User.name, schema: UserSchema },
     ]),
+    MailModule,
   ],
   controllers: [ProductsController],
   providers: [ProductsService],
