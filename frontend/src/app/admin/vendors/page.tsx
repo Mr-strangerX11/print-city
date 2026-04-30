@@ -6,7 +6,7 @@ import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle, XCircle, DollarSign, Plus, X, Loader2 } from 'lucide-react';
 import { vendorsApi, authApi } from '@/lib/api';
-import { formatDate } from '@/lib/utils';
+import { formatDate, getErrorMsg } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { toast } from 'sonner';
 
@@ -65,7 +65,7 @@ function AdminVendorsContent() {
       setVendorForm({ ...emptyVendorForm });
       load();
     } catch (err: any) {
-      toast.error(err.response?.data?.message ?? 'Failed to create vendor');
+      toast.error(getErrorMsg(err, 'Failed to create vendor'));
     } finally { setCreating(false); }
   };
 

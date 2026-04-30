@@ -41,16 +41,16 @@ export class PaymentsController {
 
   // ─── Khalti ────────────────────────────────────────────────────────────────
 
-  @UseGuards(JwtAuthGuard)
-  @Post('khalti/:orderId')
-  initiateKhalti(@Param('orderId') orderId: string, @CurrentUser('id') userId: string) {
-    return this.paymentsService.initiateKhalti(orderId, userId);
-  }
-
-  /** Called by Khalti return_url redirect with ?pidx=<pidx> */
+  /** Called by Khalti return_url redirect with ?pidx=<pidx> — must be before khalti/:orderId */
   @Public()
   @Post('khalti/verify')
   verifyKhalti(@Body('pidx') pidx: string) {
     return this.paymentsService.verifyKhalti(pidx);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('khalti/:orderId')
+  initiateKhalti(@Param('orderId') orderId: string, @CurrentUser('id') userId: string) {
+    return this.paymentsService.initiateKhalti(orderId, userId);
   }
 }

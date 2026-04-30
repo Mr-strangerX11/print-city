@@ -26,7 +26,7 @@ function EsewaSuccessContent() {
         const json = await res.json();
         if (!res.ok) throw new Error(json.message ?? 'Verification failed');
         setStatus('success');
-        setTimeout(() => router.push(`/orders/${json.orderId}`), 2000);
+        setTimeout(() => router.push(`/dashboard/orders/${json.data?.orderId ?? ''}`), 2000);
       })
       .catch((err: Error) => {
         setError(err.message);
@@ -66,7 +66,7 @@ function EsewaSuccessContent() {
             <h1 className="text-xl font-bold text-zinc-100">Verification Failed</h1>
             <p className="text-sm text-red-400">{error}</p>
             <button
-              onClick={() => router.push('/orders')}
+              onClick={() => router.push('/dashboard/orders')}
               className="mt-2 rounded-lg bg-zinc-800 px-5 py-2 text-sm text-zinc-300 hover:bg-zinc-700"
             >
               Go to Orders

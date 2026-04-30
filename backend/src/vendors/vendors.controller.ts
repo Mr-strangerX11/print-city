@@ -17,10 +17,6 @@ export class VendorsController {
   @Get()
   findAll(@Query() query: any): Promise<any> { return this.svc.findAll(query); }
 
-  @Public()
-  @Get(':slug')
-  findBySlug(@Param('slug') slug: string): Promise<any> { return this.svc.findBySlug(slug); }
-
   @Get('me/profile')
   @Roles(Role.VENDOR)
   getProfile(@CurrentUser('id') userId: string): Promise<any> { return this.svc.getProfile(userId); }
@@ -30,6 +26,10 @@ export class VendorsController {
   updateProfile(@CurrentUser('id') userId: string, @Body() dto: any) {
     return this.svc.updateProfile(userId, dto);
   }
+
+  @Public()
+  @Get(':slug')
+  findBySlug(@Param('slug') slug: string): Promise<any> { return this.svc.findBySlug(slug); }
 
   @Patch(':id/status')
   @Roles(Role.ADMIN)

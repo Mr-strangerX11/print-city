@@ -5,6 +5,7 @@ import { Camera, Loader2, User, Mail, Phone, Lock, CheckCircle } from 'lucide-re
 import { useAuth } from '@/context/AuthContext';
 import { authApi, uploadsApi } from '@/lib/api';
 import { toast } from 'sonner';
+import { getErrorMsg } from '@/lib/utils';
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
@@ -52,10 +53,7 @@ export default function ProfilePage() {
       await refreshUser();
       toast.success('Profile updated successfully');
     } catch (err: any) {
-      const raw = err?.response?.data?.message;
-      const msg = (typeof raw === 'string' ? raw : raw?.message ?? raw?.error)
-        ?? err?.message ?? 'Failed to update profile';
-      toast.error(String(msg));
+      toast.error(getErrorMsg(err, 'Failed to update profile'));
     } finally {
       setSavingInfo(false);
     }
@@ -74,10 +72,7 @@ export default function ProfilePage() {
       setNewPassword('');
       setConfirmPassword('');
     } catch (err: any) {
-      const raw = err?.response?.data?.message;
-      const msg = (typeof raw === 'string' ? raw : raw?.message ?? raw?.error)
-        ?? err?.message ?? 'Failed to change password';
-      toast.error(String(msg));
+      toast.error(getErrorMsg(err, 'Failed to change password'));
     } finally {
       setSavingPassword(false);
     }

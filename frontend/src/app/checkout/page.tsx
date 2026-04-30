@@ -76,7 +76,7 @@ export default function CheckoutPage() {
       setAppliedCoupon({ code: coupon.code, discountAmount, label });
       toast.success(`Coupon applied — ${label}`);
     } catch (err: any) {
-      toast.error(err.response?.data?.message ?? 'Invalid coupon code');
+      toast.error(getErrorMsg(err, 'Invalid coupon code'));
     } finally { setCouponLoading(false); }
   };
 

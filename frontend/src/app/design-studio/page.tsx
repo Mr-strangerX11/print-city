@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { uploadsApi, customDesignApi } from '@/lib/api';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, getErrorMsg } from '@/lib/utils';
 import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import Link from 'next/link';
@@ -150,12 +150,7 @@ export default function DesignStudioPage() {
       setStep('customize');
       toast.success('Design uploaded!');
     } catch (err: any) {
-      const raw = err?.response?.data?.message;
-      const msg = (typeof raw === 'string' ? raw : (raw?.message ?? raw?.error))
-        ?? err?.response?.data?.error
-        ?? err?.message
-        ?? 'Upload failed — please try again';
-      toast.error(String(msg));
+      toast.error(getErrorMsg(err, 'Upload failed — please try again'));
     } finally {
       setUploading(false);
     }

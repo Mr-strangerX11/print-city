@@ -13,6 +13,7 @@ import { CartService } from '../cart/cart.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { MailService } from '../mail/mail.service';
 import { InvoicesService } from '../invoices/invoices.service';
+import { CouponsService } from '../coupons/coupons.service';
 import { Order, OrderDocument } from './schemas/order.schema';
 import { OrderItem, OrderItemDocument } from './schemas/order-item.schema';
 import { Vendor, VendorDocument } from '../vendors/schemas/vendor.schema';
@@ -30,6 +31,8 @@ export class CheckoutDto {
   shippingZip: string;
   shippingCountry: string;
   notes?: string;
+  couponCode?: string;
+  paymentMethod?: string;
 }
 
 export class UpdateOrderStatusDto {
@@ -52,6 +55,7 @@ export class OrdersService {
     private notifications: NotificationsService,
     private mail: MailService,
     private invoicesService: InvoicesService,
+    private couponsService: CouponsService,
   ) {}
 
   async checkout(userId: string, dto: CheckoutDto) {
@@ -89,15 +93,35 @@ export class OrdersService {
       }),
     );
 
-    const totalAmount = orderItemsData.reduce((sum, i) => sum + i.price, 0);
+    const subtotal = orderItemsData.reduce((sum, i) => sum + i.price, 0);
     const uid = new Types.ObjectId(userId);
 
+    // Validate coupon and compute discount (before order creation so totalAmount is correct)
+    let discountAmount = 0;
+    let appliedCouponCode: string | undefined;
+    if (dto.couponCode) {
+      try {
+        const couponResult = await this.couponsService.validate(
+          { code: dto.couponCode, orderAmount: subtotal },
+          userId,
+        );
+        discountAmount = couponResult.discountAmount;
+        appliedCouponCode = couponResult.coupon.code;
+      } catch {
+        // Invalid coupon — proceed without discount
+      }
+    }
+
+    const totalAmount = Math.max(0, subtotal - discountAmount);
+
+    const { couponCode: _coupon, paymentMethod: _pm, ...shippingDto } = dto as any;
     const order = await this.orderModel.create({
       userId: uid,
       totalAmount,
       paymentStatus: PaymentStatus.UNPAID,
       orderStatus: OrderStatus.PENDING,
-      ...dto,
+      ...shippingDto,
+      ...(appliedCouponCode ? { couponCode: appliedCouponCode, discountAmount } : {}),
     });
 
     await this.orderItemModel.insertMany(
@@ -112,6 +136,11 @@ export class OrdersService {
     }
 
     await this.cartService.clearCart(userId);
+
+    // Record coupon usage so usage count is incremented and per-user limit is enforced
+    if (appliedCouponCode) {
+      this.couponsService.applyCoupon(appliedCouponCode, userId, order._id.toString(), subtotal).catch(() => null);
+    }
 
     await this.notifications.create(
       userId,

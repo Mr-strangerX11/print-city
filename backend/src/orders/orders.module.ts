@@ -8,6 +8,7 @@ import { Vendor, VendorSchema } from '../vendors/schemas/vendor.schema';
 import { CartModule } from '../cart/cart.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { InvoicesModule } from '../invoices/invoices.module';
+import { CouponsModule } from '../coupons/coupons.module';
 import { ProductVariant, ProductVariantSchema } from '../products/schemas/product-variant.schema';
 import { Product, ProductSchema } from '../products/schemas/product.schema';
 import { ProductImage, ProductImageSchema } from '../products/schemas/product-image.schema';
@@ -29,6 +30,7 @@ import { User, UserSchema } from '../user/schemas/user.schema';
     CartModule,
     NotificationsModule,
     InvoicesModule,
+    CouponsModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService],

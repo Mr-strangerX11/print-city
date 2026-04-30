@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { ChevronLeft, Loader2 } from 'lucide-react';
 import { ordersApi } from '@/lib/api';
 import { Order, OrderStatus } from '@/types';
-import { formatPrice, formatDate, ORDER_TIMELINE } from '@/lib/utils';
+import { formatPrice, formatDate, ORDER_TIMELINE, getErrorMsg } from '@/lib/utils';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { OrderTimeline } from '@/components/ui/OrderTimeline';
 import { toast } from 'sonner';
@@ -36,12 +36,7 @@ export default function AdminOrderDetailPage() {
       toast.success(`Order status updated to ${status}`);
       load();
     } catch (err: any) {
-      const raw = err?.response?.data?.message;
-      const msg = (typeof raw === 'string' ? raw : raw?.message ?? raw?.error)
-        ?? err?.response?.data?.error
-        ?? err?.message
-        ?? 'Failed to update status';
-      toast.error(String(msg));
+      toast.error(getErrorMsg(err, 'Failed to update status'));
     }
     finally { setUpdating(false); }
   };
